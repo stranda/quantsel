@@ -1,0 +1,13 @@
+4/9/20	Changed package so significantly that it is now quantsel v.0.12.0 instead of kernelpop
+	
+ver 0.11.5
+9/14/10
+rolled back a lot of the memory management to gnu-specific constructs.  The generic c++ "fixes" I applied caused horrible memory leaks
+Will look into bringing kernelpop code into a more generic form...
+
+ver 0.11.1
+1/24/10
+lots of changes both internal and in userspace.
+
+0.9.09 added const to take care of CHARSXP changes in 2.6
+0.9.07 added documentation comparing kernePop to Rmetasim and EASYPOP

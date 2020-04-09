@@ -1,0 +1,11 @@
+Package: quantsel
+Type: Package
+Title: Spatially explicit population genetic simulations with polygenic traits and selection
+Version: 0.12.0
+Date: 2020-04-09
+Author: Allan Strand
+Maintainer: <stranda@cofc.edu>
+Depends: ape, ade4, MASS, pegas
+Description: This package creates a individual-based population genetic simulation.  Individuals have spatial coordiantes, dispersal governed by mixtures of Weibull and normal pdfs.  It is discrete-time.  It can be arbitrarily complex given enough known or assumed demographic characteristics.  Simulates diploid and haploid inheritance. Polygenic inheritance is implemented along with selection on any number of phenotypes.   Allows the development of null distributions of genotypes for complex demographic scenarios.  This version includes some approximations for pollen (male gamete) dispersal.
+License: GPL
+Packaged: 2013-10-07 01:20:11 UTC; astrand
