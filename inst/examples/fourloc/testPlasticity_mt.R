@@ -1,6 +1,6 @@
 
 
-library(kernelPop2)
+library(quantsel)
 library(ggplot2)
 library(dplyr)
 library(tidyr)

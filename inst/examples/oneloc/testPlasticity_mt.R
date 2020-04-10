@@ -1,6 +1,6 @@
 
 
-library(kernelPop2)
+library(quantsel)
 library(ggplot2)
 library(dplyr)
 library(tidyr)
@@ -65,20 +65,33 @@ onerep <- function(plt=F) #one rep of a simulation
                                  maxland=c(min(locs[1]),min(locs[2]),max(locs[3]),max(locs[4])))
     
     
-    for (i in 1:4)
-        rland <- landscape.new.locus(rland,type=1,ploidy=2,mutationrate=0.00,transmission=0,numalleles=2)
-    
-    
-    expmat <- matrix(c(  #4rows for 4 loci, 4 cols for 4 phenotypes
-        1,0,0,0,
-        0,1,0,0,
-        0,0,1,0,
-        0,0,0,1
+
+for (i in 1:16)
+    rland <- landscape.new.locus(rland,type=1,ploidy=2,mutationrate=0.00,transmission=0,numalleles=2)
+
+
+expmat <- matrix(c(  #16rows for 16 loci, 4 cols for 4 phenotypes
+    1,0,0,0,
+    1,0,0,0,
+    1,0,0,0,
+    1,0,0,0,
+    0,1,0,0,
+    0,1,0,0,
+    0,1,0,0,
+    0,1,0,0,
+    0,0,1,0,
+    0,0,1,0,
+    0,0,1,0,
+    0,0,1,0,
+    0,0,0,1,
+    0,0,0,1,
+    0,0,0,1,
+    0,0,0,1
     ),byrow=T,ncol=4)
-    hsq <- c(1,1,1,1)
-    rland <- landscape.new.expression(rland,
-                                      expmat=expmat*0.5,
-                                      hsq=hsq) #0.5 -> 1 diploid locus per phen, up to 2 alelle additive doses
+hsq <- c(1,1,1,1)
+rland <- landscape.new.expression(rland,
+                                  expmat=expmat*0.125, #0.125 -> 1 diploid locus per phen, 
+                                  hsq=hsq) #up to 8 alelle additive doses, when summed across 4 loci.  
     rland <- landscape.new.gpmap(rland,
                                  ## 4 cols 5 rows.  Cols correspond to phenotype effects on fit components
                                  ##for each phenotype (0 is no effect, 4 phenotypes in this example)

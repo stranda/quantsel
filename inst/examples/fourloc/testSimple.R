@@ -1,5 +1,5 @@
 
-library(kernelPop2)
+library(quantsel)
 library(ggplot2)
 library(dplyr)
 library(tidyr)
@@ -64,7 +64,7 @@ for (i in 1:16)
     rland <- landscape.new.locus(rland,type=1,ploidy=2,mutationrate=0.00,transmission=0,numalleles=2)
 
 
-expmat <- matrix(c(  #4rows for 4 loci, 4 cols for 4 phenotypes
+expmat <- matrix(c(  #16rows for 16 loci, 4 cols for 4 phenotypes
     1,0,0,0,
     1,0,0,0,
     1,0,0,0,
@@ -77,14 +77,14 @@ expmat <- matrix(c(  #4rows for 4 loci, 4 cols for 4 phenotypes
     0,0,1,0,
     0,0,1,0,
     0,0,1,0,
-    0,0,0,1
-    0,0,0,1
-    0,0,0,1
+    0,0,0,1,
+    0,0,0,1,
+    0,0,0,1,
     0,0,0,1
     ),byrow=T,ncol=4)
 hsq <- c(1,1,1,1)
 rland <- landscape.new.expression(rland,
-                                  expmat=expmat*0.1255, #0.125 -> 1 diploid locus per phen, 
+                                  expmat=expmat*0.125, #0.125 -> 1 diploid locus per phen, 
                                   hsq=hsq) #up to 8 alelle additive doses, when summed across 4 loci.  
                                         
 rland <- landscape.new.gpmap(rland,
@@ -104,30 +104,21 @@ rland <- landscape.new.gpmap(rland,
                              )
                              
 rland <- landscape.new.plasticity(rland,
-                                  matrix(c(
+                                  matrix(c(   
                                       1, 1, 1, 1,
                                       1, 1, 1, 1
                                       ),nrow=2,ncol=4,byrow=T)) #two habitats, four phenotypes
 
-rland <- landscape.new.phenohab(rland)
+rland <- landscape.new.phenohab(rland) #specifies matching between phenotype and environment, with
+                                       #onle rland specified, there is no matching
 
-initpopsize <- 10
+initpopsize <- 100
 inits <- matrix(initpopsize,ncol=rland$intparam$habitats,nrow=2)
 
 rland <- landscape.new.individuals(rland,c(inits))
 
-if (FALSE)
-    {
-rland$individuals[landscape.populations(rland)==pop1,c(10,11,12,13)]=1L
-rland$individuals[landscape.populations(rland)==pop2,c(10,11,12,13)]=2L
 
-rland$individuals[landscape.populations(rland)==pop1,c(14,15,16,17)]=2L
-rland$individuals[landscape.populations(rland)==pop2,c(14,15,16,17)]=1L
-}
-#rland$individuals[,5] <- 4500+floor(rland$individuals[,5]/10)
-###############################
-
-phens=c(1,2,3,4) #represented as 0 in c++
+phens=c(1,2,3,4) #represented as 0->3 in c++
 gen=100
 sumlst=list()[1:gen]
 

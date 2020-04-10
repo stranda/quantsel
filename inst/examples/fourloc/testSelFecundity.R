@@ -1,6 +1,6 @@
 
 
-library(kernelPop2)
+library(quantsel)
 library(ggplot2)
 library(dplyr)
 library(tidyr)
@@ -50,7 +50,7 @@ M <- S
 locs=cbind(lft=c(1,20001),bot=c(1,1),rgt=c(20000,40000),top=c(20000,20000))
 
 lfts=1
-k=rep(2500,rland$intparam$habitat)
+k=rep(3000,rland$intparam$habitat)
 e=rep(gapprop,rland$intparam$habitat)
 rland <- landscape.new.epoch(rland,S=S,R=R,M=M,
                              carry=k,
@@ -62,19 +62,32 @@ rland <- landscape.new.epoch(rland,S=S,R=R,M=M,
                              maxland=c(min(locs[1]),min(locs[2]),max(locs[3]),max(locs[4])))
 
 
-for (i in 1:4)
+for (i in 1:16)
     rland <- landscape.new.locus(rland,type=1,ploidy=2,mutationrate=0.00,transmission=0,numalleles=2)
 
-expmat <- matrix(c(  #4rows for 4 loci, 4 cols for 4 phenotypes
+
+expmat <- matrix(c(  #16rows for 16 loci, 4 cols for 4 phenotypes
+    1,0,0,0,
+    1,0,0,0,
+    1,0,0,0,
     1,0,0,0,
     0,1,0,0,
+    0,1,0,0,
+    0,1,0,0,
+    0,1,0,0,
     0,0,1,0,
+    0,0,1,0,
+    0,0,1,0,
+    0,0,1,0,
+    0,0,0,1,
+    0,0,0,1,
+    0,0,0,1,
     0,0,0,1
     ),byrow=T,ncol=4)
 hsq <- c(1,1,1,1)
 rland <- landscape.new.expression(rland,
-                                  expmat=expmat*0.5,
-                                  hsq=hsq) #0.5 -> 1 diploid locus per phen, up to 2 alelle additive doses
+                                  expmat=expmat*0.125, #0.125 -> 1 diploid locus per phen, 
+                                  hsq=hsq) #up to 8 alelle additive doses, when summed across 4 loci.  
 rland <- landscape.new.gpmap(rland,
                              ## 4 cols 5 rows.  Cols correspond to phenotype effects on fit components
                              ##for each phenotype (0 is no effect, 4 phenotypes in this example)
@@ -99,14 +112,14 @@ rland <- landscape.new.plasticity(rland,
 
 
 ph <- matrix(c(
-    1,2,0.1,0,  #alpha=1, beta=2, range around 1 = 0.05 and use original sign (=0)
-    1,2,0.1,0
+    1,2,0.2,0,  #alpha=1, beta=2, range around 1 = 0.05 and use original sign (=0)
+    1,2,0.2,0
 ),nrow=2,ncol=4,byrow=T)
 rland <- landscape.new.phenohab(rland)
 rland <- landscape.new.phenohab(rland,7,ph=ph)
 
 
-initpopsize <- 10
+initpopsize <- 1000
 inits <- matrix(initpopsize,ncol=rland$intparam$habitats,nrow=2)
 
 rland <- landscape.new.individuals(rland,c(inits))
