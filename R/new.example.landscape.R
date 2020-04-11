@@ -1,3 +1,14 @@
+#' Create a Default Landscape
+#' 
+#' Create a Rmetasim landscape with all default parameters.
+#' 
+#' 
+#' @keywords misc
+#' @examples
+#' 
+#'   ## Only usage
+#' #  landscape.new.example()
+#' @export landscape.new.example
 "landscape.new.example" <- function()
 {
   rland <- NULL

@@ -2,6 +2,24 @@
 #
 #adults selects plotting of adults only
 #
+
+
+
+
+#' plots the locations of all habitats and individuals
+#' 
+#' 
+#' Plots the landscape.  Gives different habitats different colors, though the
+#' colors cycle through rapidly when the number of habitats is large.
+#' Offspring always have the color of their \emph{mother's} habitat.  This
+#' provides a quick way to assess inter-habitat movement visually
+#' 
+#' 
+#' @param rland landscape
+#' @param adults vector of stages to select and plot, if NULL, plot all stages
+#' @return NULL
+#' @keywords misc
+#' @export landscape.plot.locations
 landscape.plot.locations <- function(rland,adults=c(NULL))
   {
     if (is.landscape(rland,FALSE))

@@ -1,3 +1,19 @@
+#' Test whether an object is a (fairly) legitimate landscape
+#' 
+#' Test whether a genuine landscape
+#' 
+#' 
+#' @param Rland the Rmetasim landscape object
+#' @param verb print why not a landscape
+#' @param exact more strict
+#' @keywords misc
+#' @examples
+#' 
+#'   exampleland <- landscape.new.example()
+#'   is.landscape(exampleland)
+#'   rm(exampleland)
+#' 
+#' @export is.landscape
  is.landscape <- function (Rland = NULL, verb = TRUE, exact = FALSE) 
 {
     ok <- TRUE

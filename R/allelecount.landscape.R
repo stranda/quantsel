@@ -1,4 +1,3 @@
-
 landscape.genotypes <- function(Rland) #this function pastes the genotypes (haplotypes also) of all alleles
   {
 
@@ -21,6 +20,33 @@ landscape.genotypes <- function(Rland) #this function pastes the genotypes (hapl
                    )
   }
 
+
+
+
+
+#' Calculate allele numbers (frequency in the statistical sense) at each locus
+#' in each population
+#' 
+#' Calculate allele counts
+#' 
+#' 
+#' @param rland the Rmetasim landscape object
+#' @param tbl.out return as a (three-dimensional) table if TRUE.  If FALSE,
+#' return as a dataframe with categorical variables denoting the locus,
+#' population and allele.
+#' @return Depends on the value of tbl.out.  See above.
+#' @seealso landscape.allelefreq, landscape.obs.het, landscape.exp.het,
+#' landscape.Fwright, landscape.Fst
+#' @keywords misc
+#' @examples
+#' 
+#' #  exampleland <- landscape.new.example()
+#' #  exampleland <- landscape.simulate(exampleland, 4)
+#' #  landscape.allelefreq(exampleland,tbl.out=TRUE)
+#' #  landscape.allelefreq(exampleland,tbl.out=FALSE)
+#' #  rm(exampleland)
+#' 
+#' @export landscape.allelecount
 "landscape.allelecount" <-
 function(Rland,tbl.out=FALSE)
   {

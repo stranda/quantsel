@@ -1,8 +1,30 @@
-
-
-
 ###tries out the different kernels.  Plots offspring and mothers
 ###also compares the dispersal distances to what we intended
+
+
+
+
+#' takes parameters that define a pollen kernel and plots the results of
+#' simulating that kernel
+#' 
+#' Produces a plot of a landscape.  Adds a plot of the pollination distances in
+#' the landscape.
+#' 
+#' 
+#' @param s selfing rate to define
+#' @param pmn1 mean of component distribution 1
+#' @param pshp1 shape of component distribution 1
+#' @param pmn2 mean of component distribution 2
+#' @param pshp2 shape of component distribution 2
+#' @param pmix mixing parameter [0,1], 1=> all component 1
+#' @param plot boolean
+#' @return landscape object
+#' @keywords misc
+#' @examples
+#' 
+#' l<-landscape.pollen.kernel.demo()
+#' 
+#' @export landscape.pollen.kernel.demo
 landscape.pollen.kernel.demo <- function(s=0,pmn1=30,pshp1=1.01,
                                          pmn2=600,pshp2=200,
                                          pmix=0.75,plot=T)

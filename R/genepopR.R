@@ -10,6 +10,29 @@
 #
 # l is a landscape and fn is the name of the output file
 #
+
+
+
+
+#' writes genepop files based on the genotypes of individuals in a landscape
+#' 
+#' creates a genepop file.  Occupied habitats correspond to genepop
+#' populations.
+#' 
+#' Only exports diploid data.  You might want to run \code{landscape.sample()}
+#' on the landscape before exporting it
+#' 
+#' @param l landscape object
+#' @param fn output file name
+#' @param title title of output in genepop file
+#' @seealso landscape.write.foreign, landscape.write.fdist
+#' @keywords misc
+#' @examples
+#' 
+#' #	l <- landscape.new.example()	
+#' #	l <- landscape.simulate(l,5)
+#' #	landscape.genepop.output(landscape.sample(l,3,24))
+#' 
 landscape.genepop.output <- function(l,fn="genepop.out",title="rmetasim landscape output")
   {
     if (is.landscape(l)) #input error check

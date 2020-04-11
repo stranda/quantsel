@@ -1,3 +1,17 @@
+#' Calculate demographic parameters
+#' 
+#' Calculate demographic parameters from a landscape: CURRENTLY BROKEN!
+#' 
+#' 
+#' @param rland the Rmetasim landscape object
+#' @return A list of length populations+1.  The first 1..populations elements
+#' are lists comprised of lambda, the equilibrium stage-structure, the actual
+#' stage structure, a chi^2 value for the test of difference between predicted
+#' and actual, and an estimate of significance for that test.  The last element
+#' of the main list is the same as the previous ones except it refers to the
+#' entire landscape
+#' @keywords misc
+#' @export landscape.demography
 "landscape.demography" <-
 function(Rland)
 {

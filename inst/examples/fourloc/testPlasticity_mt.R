@@ -14,7 +14,7 @@ library(parallel)
 ### This version runs multiple threads to get average behavior
 ###
 
-CORES = 4  #number of simultaneous threads.  
+if (exists("cores") & (cores>0)) CORES = cores else CORES = 4  #number of simultaneous threads.  
 reps = 25 * CORES #might as well make it a multiple of CORES
 
 onerep <- function(plt=F) #one rep of a simulation

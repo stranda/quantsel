@@ -1,6 +1,24 @@
 #
 # export the data in fdist format
 #
+
+
+
+
+#' writes a landscapes allele frequencies to an FDIST file
+#' 
+#' Calculates the allele frequencies in each occupied habitat up to the number
+#' specified in popnum.  Makes calculations based upon the number of
+#' individuals sampled stored in samp
+#' 
+#' 
+#' @param l landscape object
+#' @param popnum max number of populations to sample
+#' @param samp max number of individuals to sample per population
+#' @return NULL
+#' @seealso
+#' \code{\link{landscape.write.foreign}},\code{\link{landscape.genepop.output}}
+#' @keywords misc
 landscape.write.fdist <- function(l,popnum=20,samp=24)
   {
     if (is.landscape(l)) #input error check

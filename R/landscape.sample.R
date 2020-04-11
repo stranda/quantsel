@@ -39,6 +39,34 @@ landscape.sample.old <- function(rland,np=NULL,ns=NULL,pvec=NULL)
     rland
   }
 
+
+
+
+
+#' simulates sampling for genetics on the landscape
+#' 
+#' 
+#' Randomly pulls a max of \code{ns} individuals from a max of \code{np}
+#' populations and returns a landscape object that could be used for further
+#' simulation, but is usually used for analyses and summary statistics
+#' calculatiuons
+#' 
+#' 
+#' @param rland landscape object
+#' @param np number populations
+#' @param ns number samples per population
+#' @param pvec a vector of populations to sample.  Should be numbers from 1 to
+#' number of habitats
+#' @return landscape object
+#' @keywords misc
+#' @examples
+#' 
+#' 	l <- landscape.new.example()
+#' 	l <- landscape.simulate(l,1)
+#' 	l.samp <- landscape.sample(l,np=3,ns=24)
+#' 	landscape.amova.pairwise(l.samp)
+#' 
+#' @export landscape.sample
 landscape.sample <- function(rland,np=NULL,ns=NULL,pvec=NULL)
   {
     

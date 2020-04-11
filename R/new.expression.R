@@ -3,6 +3,23 @@
 
 ###aindex is a vector of the aindices for each locus that confer an additive effect
 ###hsq is a vector of heritabilities (now always 1)
+
+
+
+
+#' don't use
+#' 
+#' not implemented
+#' 
+#' This is only skeleton code.
+#' 
+#' @param rland landscape object
+#' @param expmat expression matrix
+#' @param hsq narrow sense heritabilities
+#' @return Not sure what it will return
+#' @author Allan Strand
+#' @keywords misc
+#' @export landscape.new.expression
 landscape.new.expression <-
 function(rland,expmat,addstates=NULL,hsq=NULL)  
 {

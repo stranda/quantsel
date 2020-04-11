@@ -23,6 +23,29 @@ old.landscape.obs.het <- function (Rland)
     rl
 }
 
+
+
+
+
+#' Calculate observed heterozygosity
+#' 
+#' Calculate observed heterozygosity from a landscape
+#' 
+#' 
+#' @param rland the Rmetasim landscape object
+#' @return A matrix with num loci columns and num populations rows.  Each
+#' element reflects the observed heterozygosity for that population x locus
+#' combination
+#' @seealso landscape.exp.het, landscape.Fst
+#' @keywords misc
+#' @examples
+#' 
+#' #  exampleland <- landscape.new.example()
+#' #  exampleland <- landscape.simulate(exampleland, 4)
+#' #  obshet <- landscape.obs.het(exampleland)
+#' #  rm(exampleland)
+#' 
+#' @export landscape.obs.het
 landscape.obs.het <- function (Rland) 
 {
 

@@ -1,3 +1,25 @@
+#' return a list object containing actual allele states and their associated
+#' indices for a particular locus
+#' 
+#' return a list object containing actual allele states and their associated
+#' indices for a particular locus
+#' 
+#' Returns a list with two elements, aindex containing the allele indices and
+#' state containing the actual allele states.
+#' 
+#' @param lnum the locus to return
+#' @param Rland the Rmetasim landscape object
+#' @return list
+#' @seealso landscape.locus, landscape.locus.states
+#' @keywords misc
+#' @examples
+#' 
+#'   exampleland <- landscape.new.example()
+#'   exampleland <- landscape.simulate(exampleland, 4)
+#'   landscape.states(1,exampleland)
+#'   rm(exampleland)
+#' 
+#' @export landscape.states
 "landscape.states" <-
 function(lnum=1,Rland)
   {

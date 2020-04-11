@@ -1,4 +1,26 @@
-
+#' return a matrix containing genotypes for a particular locus
+#' 
+#' return a matrix containing genotypes for a particular locus
+#' 
+#' Returns a matrix with rows = \code{dim(rland$individuals)[1]}.  The first
+#' three columns correspond to the class (and two placeholder variables) of an
+#' individual.  Here rland is a landscape object.  The remaining columns (1 if
+#' haploid, 2 if diploid) contain the allele indices for the various loci
+#' 
+#' @param lnum the locus to return
+#' @param Rland the Rmetasim landscape object
+#' @return matrix
+#' @seealso landscape.populations
+#' @keywords misc
+#' @examples
+#' 
+#'   exampleland <- landscape.new.example()
+#'   exampleland <- landscape.simulate(exampleland, 4)
+#'   print("Allele frequencies at locus 1")
+#'   table(landscape.locus(1,exampleland)[,c(-1:-(landscape.democol()))]) 
+#'   rm(exampleland)
+#' 
+#' @export landscape.locus
 "landscape.locus" <-
 function(lnum=1,Rland)
   {
@@ -35,6 +57,22 @@ landscape.states.old <- function(lnum=1,Rland)
 #
 #takes a locus and returns the states and their indices
 #
+
+
+
+
+#' return a matrix containing actual allelic states and their indices
+#' 
+#' Convenience function to return a matrix containing the states of the alleles
+#' and their indicesfor a particular locus
+#' 
+#' 
+#' @param lnum the locus to return
+#' @param Rland the Rmetasim landscape object
+#' @return matrix
+#' @seealso landscape.locus, landscape.states
+#' @keywords misc
+#' @export landscape.locus.states
 landscape.locus.states<-function(lnum=1,Rland)
   {
     if (is.landscape(Rland))

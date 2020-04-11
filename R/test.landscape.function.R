@@ -1,3 +1,11 @@
+#' tests whatever c code is compiled in
+#' 
+#' currently generates 10,000 random pulls from a pdf
+#' 
+#' 
+#' @return vector
+#' @keywords misc
+#' @export landscape.test.function
 "landscape.test.function" <-
 function()
   {

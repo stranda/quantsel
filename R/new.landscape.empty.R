@@ -1,3 +1,19 @@
+
+
+#' Create a Skeletal Landscape
+#' 
+#' Create a skeletal Rmetasim landscape ready to be configured
+#' 
+#' 
+#' @aliases landscape.new.empty
+#' @keywords misc
+#' @export
+#' @examples
+#' 
+#'   ## Only usage
+#'   landscape.new.empty()
+
+
 "landscape.new.empty" <-
 function()
 {
