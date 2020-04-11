@@ -8,7 +8,7 @@ library(parallel)
 #source("helpers.R")
 #source("analysis.R")
 if (exists("cores") & (cores>0)) CORES = cores else CORES = 4  #number of simultaneous threads.
-reps=25*CORES
+reps=100
 ### this script makes a 2 population grid,
 ### populates the entire thing,
 ### then four phenotypes,

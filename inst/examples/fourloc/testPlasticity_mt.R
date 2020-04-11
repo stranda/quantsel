@@ -15,7 +15,7 @@ library(parallel)
 ###
 
 if (exists("cores") & (cores>0)) CORES = cores else CORES = 4  #number of simultaneous threads.  
-reps = 25 * CORES #might as well make it a multiple of CORES
+reps = 100
 
 onerep <- function(plt=F) #one rep of a simulation
 {
