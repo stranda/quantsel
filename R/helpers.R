@@ -101,6 +101,7 @@ landscape.plot.phenotypes <- function (rland, phen, annotate=T, palletfunc=terra
         for (i in 1:rland$intparam$habitats)
             if (annotate)
             {
+                
                 text(x=floor(rland$demography$epochs[[1]]$rightx[i]*0.99),
                      y=floor(rland$demography$epochs[[1]]$topy[i]*0.97),
                      labels=paste("Mean phenotype: ",round(mean(ph[sites==i]),3)),

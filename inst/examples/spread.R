@@ -15,7 +15,7 @@ rland <- landscape.new.empty()
 rland <- landscape.new.intparam(rland, h=1024, s=2,np=4,totgen=20000,maxland=3e5)
 rland <- landscape.new.switchparam(rland,mp=0)
 rland <- landscape.new.floatparam(rland,s=0,seedscale=c(40,1500),
-                                  seedshape=c(1,500),seedmix=c(0.05),
+                                  seedshape=c(1,500),seedmix=c(0.1),
                                   pollenscale=c(40,1250),pollenshape=c(1,100),
                                   pollenmix=0.2 , asp=0.5)
 
@@ -41,8 +41,8 @@ S <- matrix(0,ncol = (rland$intparam$habitats*rland$intparam$stages),
 R <- S
 M <- S
 
-rights <- floor(seq(0,40000,length=33))
-tops <-   floor(seq(0,40000,length=33))
+rights <- floor(seq(0,80000,length=33))
+tops <-   floor(seq(0,80000,length=33))
 locs=NULL
 for (i in 1:(length(tops)-1))
 {
@@ -54,7 +54,8 @@ for (i in 1:(length(tops)-1))
 }
 
 lfts=which(locs$lft==1)
-k=rep(200,rland$intparam$habitat)
+k=rep(150,rland$intparam$habitat)
+k[528]=2000
 e=rep(gapprop,rland$intparam$habitat)
 rland <- landscape.new.epoch(rland,S=S,R=R,M=M,
                              carry=k,
@@ -99,11 +100,11 @@ rland <- landscape.new.gpmap(rland,
                              matrix(c(0,   0,   0, 0,   #short scale #no selection
                                       0,   0,   0, 0,   #long scale 
                                       0,   0,   0, 0,   #long shape  #no selection
-                                      0,   0,   0, 0,   #mixture   #phenotype 2   #no selection
+                                      0,   0,   0, 1,   #mixture   #phenotype 2   #no selection
                                       0,   0,   0, 0,   #not used  #no selection
-                                      0,   0,   0, 0,   #survive  
+                                      0,   1,   0, 0,   #survive  
                                       1,   0,   0, 0,   #reproduce 
-                                      0,   0,   0, 0    #density tolerance  #no selection
+                                      0,   0,   1, 0    #density tolerance  #no selection
                                       ),
                                     ncol=4,byrow=T)
                              )
@@ -113,31 +114,33 @@ rland <- landscape.new.plasticity(rland)
 rland <- landscape.new.phenohab(rland)
 
 ##reproduction gradient on pheno 1
-ph <- matrix(rep(c(1,2,0.05,0),  #alpha=1, beta=2, range around 1 = 0.05 and use original sign (=0)
+ph <- matrix(rep(c(1,2,0.2,0),  #alpha=1, beta=2, range around 1 = 0.05 and use original sign (=0)
 , rland$intparam$habitats),nrow=rland$intparam$habitats,ncol=4,byrow=T)
 
 rland <- landscape.new.phenohab(rland,7,ph=ph)
-if (FALSE)
-    {
+
 ##survive gradient on pheno 2
-ph <- matrix(c(
-    1,2,0.1,0,  #alpha=1, beta=2, range around 1 = 0.05 and use original sign (=0)
-    1,2,0.1,0
-),nrow=2,ncol=4,byrow=T)
+ph <- matrix(rep(c(2,1,0.2,0),  #alpha=1, beta=2, range around 1 = 0.05 and use original sign (=0)
+, rland$intparam$habitats),nrow=rland$intparam$habitats,ncol=4,byrow=T)
 
 rland <- landscape.new.phenohab(rland,6,ph=ph)
-
-##dispersal distance on phenotype 3
-ph <- matrix(c(
-    1,2,0.3,0,  #alpha=1, beta=2, range around 1 = 0.05 and use original sign (=0)
-    1,2,0.3,0
-),nrow=2,ncol=4,byrow=T)
+ 
+##dispersal mixture on phenotype 3
+ph <- matrix(rep(c(2,1,0.3,0),  #alpha=1, beta=2, range around 1 = 0.05 and use original sign (=0)
+, rland$intparam$habitats),nrow=rland$intparam$habitats,ncol=4,byrow=T)
 
 rland <- landscape.new.phenohab(rland,2,ph=ph)
-    }
 
-initpopsize <- 50
-inits <- matrix(initpopsize,ncol=rland$intparam$habitats,nrow=2)
+##dens tolerance on phenotype 4
+ph <- matrix(rep(c(1,2,0.2,0),  #alpha=1, beta=2, range around 1 = 0.05 and use original sign (=0)
+, rland$intparam$habitats),nrow=rland$intparam$habitats,ncol=4,byrow=T)
+
+rland <- landscape.new.phenohab(rland,2,ph=ph)
+
+initpopsize <- 1000
+inits <- matrix(0,ncol=rland$intparam$habitats,nrow=2)
+inits[1,528] <- initpopsize
+inits[2,528] <- initpopsize
 
 rland <- landscape.new.individuals(rland,c(inits))
 
@@ -151,7 +154,7 @@ locs <- landscape.generate.locations(npop=1024,
                                      )
 
 phens=c(1,2,3,4) #represented as 0 in c++
-gen=100
+gen=50
 sumlst=list()[1:gen]
 
 #pdf(paste0("gaps_",gapprop,".pdf"), width=15,height=7.5)
@@ -182,7 +185,6 @@ for (i in 1:gen)
 sumdf <- do.call(rbind,sumlst)
 
 save(file=paste0("gap_",gapprop,"_res.rda"),sumlst,sumdf)
-
 
 p = sumdf %>%
     ggplot(aes(y=gen,x=pop,z=phen1_mean))+

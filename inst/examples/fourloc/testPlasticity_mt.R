@@ -135,4 +135,4 @@ onerep <- function(plt=F) #one rep of a simulation
 
 
 allreslst.eq <- mclapply(1:reps,mc.cores=CORES,function(i) {print(i);onerep(F)})
-simsum(allreslst.eq,fn="testPlasticity_mt.rda")
+tmp <- simsum(allreslst.eq)

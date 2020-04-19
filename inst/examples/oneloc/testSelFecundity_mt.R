@@ -146,7 +146,7 @@ pdf("selection_examples.pdf")
 
 
 allreslst.eq <- mclapply(1:reps,mc.cores=CORES,function(i) {print(i);onerep()})
-simsum(allreslst.eq,fn="testSelEqual_mt.rda")
+reslst0 <- simsum(allreslst.eq,plt=T)
 
 allreslst.oppo <- mclapply(1:reps,mc.cores=CORES,function(i)
 {
@@ -156,7 +156,9 @@ allreslst.oppo <- mclapply(1:reps,mc.cores=CORES,function(i)
                2,1,0.1,0
            ),nrow=2,ncol=4,byrow=T))
 })
-simsum(allreslst.oppo,fn="testSelOppo_mt.rda")
+
+reslst1 <- simsum(allreslst.eq,plt=T)
+
 
 allreslst.Sel1No2 <- mclapply(1:reps,mc.cores=CORES,function(i)
 {
@@ -166,7 +168,8 @@ allreslst.Sel1No2 <- mclapply(1:reps,mc.cores=CORES,function(i)
                1,1,0.1,0
            ),nrow=2,ncol=4,byrow=T))
 })
-simsum(allreslst.Sel1No2,fn="testSel1No2_mt.rda")
+reslst2 <- simsum(allreslst.eq,plt=T)
+
 
 allreslst.Stab <- mclapply(1:reps,mc.cores=CORES,function(i)
 {
@@ -176,6 +179,6 @@ allreslst.Stab <- mclapply(1:reps,mc.cores=CORES,function(i)
                12,4,0.6,0
            ),nrow=2,ncol=4,byrow=T))
 })
-simsum(allreslst.Stab,fn="testStab0.2_0.8_mt.rda")
 
+reslst3 <- simsum(allreslst.eq,plt=T)
 dev.off()

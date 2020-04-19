@@ -757,18 +757,18 @@ double Landscape_space::getAdjDemo(int response, PackedIndividual_space Ind)
     { //make sure that there could be a phenotype (ie there are at least gpd phenotypes)
       int hab = Ind.GetClass()/getstages();  ///c++ is supposed to do integer division
                                              ///hab should contain the index for the habitat
-      //      cerr<<"hab "<<hab<<endl;
+      //            cerr<<"hab "<<hab<<endl;
       double a=getphenohab(hab,response,0); //'alpha' from beta distribution
       double b=getphenohab(hab,response,1); //'beta' from beta distribution
       double r=getphenohab(hab,response,2); //Range around 1.0 for final multiplier
-      double d=getphenohab(hab,response,3); //Direction for selection for low (0) and
+      double d=getphenohab(hab,response,3); //Direction for selection normal (0) inverted (1)
 
       for (int p=0;p<getnphen();p++)
 	{
 	  if (getgpdemo(response,p)>0)
 	    {
-	      //	      cerr << "p " << p << endl;
-	      //	      cerr << "a " << a << " b " <<b <<endl;
+	      //	      	      cerr << "p " << p << endl;
+	      //	      	      cerr << "a " << a << " b " <<b <<endl;
 	      if ((a>=1)&(b>=1))
 		{
 		  //high (1) variance. See comment below at if(d>=0)
@@ -777,17 +777,20 @@ double Landscape_space::getAdjDemo(int response, PackedIndividual_space Ind)
 		  double betaval = dbeta(ph,a,b,0);
 		  adj = (1-r/2)+r*(betaval/bm); //normalize by the max of the pdf across 25 samples
 		  //		  cerr << "p "<<p<<" response "<<response<<" hab "<<hab<<" ph "<<ph <<endl;
-		  //		  cerr << "r " << r << " d " << d << " a " << a << " b " << b <<" betaval "<<betaval <<" betamax "<<bm<<" adj " << adj <<endl;
-		  
-		  if ((d>=0)) ///hack to using the beta to do selection for more variance
+		  //		  cerr << "r " << r << " d " << d << " a " << a << " b " << b <<" betaval "<<betaval <<" betamax "<<bm<<" d "<< d <<" adj " << adj <<endl;
+		 
+		  if (d>0) ///hack to using the beta to do selection for more variance
 		    ///yes the beta does this with a,b < 1 but there are infinite densities at the margins [0,1]
 		    {
+		      //  		      cerr << "in the d>0 block ";
 		      adj = -1*(adj-1)+1;
+		      //		      cerr << "new adj "<<adj <<endl;
 		    }
 		  meanadj = meanadj + getgpdemo(response,p)*adj;
 		}
 	    }
 	}
+      //      cerr<<"value of meanadj before return " << meanadj <<endl;
     } else {meanadj = 1.0;} 
   return meanadj;
 }
@@ -812,27 +815,32 @@ double Landscape_space::getAdjDemoDens(PackedIndividual_space Ind)
 	{
 	  if (getgpdemo(response,p)>0)
 	    {
-	      double a=getphenohab(hab,p,0); //'alpha' from beta distribution
-	      double b=getphenohab(hab,p,1); //'beta' from beta distribution
+	      double a=getphenohab(hab,response,0); //'alpha' from beta distribution
+	      double b=getphenohab(hab,response,1); //'beta' from beta distribution
 	      if ((a>=1)&(b>=1))
 		{
-		  double r=getphenohab(hab,p,2); //Range around 1.0 for final multiplier
-		  double d=getphenohab(hab,p,3); //Direction for selection for low (0) and
-		  //high (1) variance. See comment below at if(d>=0)
+		  double r=getphenohab(hab,response,2); //Range around 1.0 for final multiplier
+		  double d=getphenohab(hab,response,3); //Direction for selection for low (0) and
+		  //high (1) variance. See comment below at if(d>0)
 		  double ph = IndividualPhenotype(Ind)[p]; //the phenotype for the 'response' trait (includes plasticity)
 		  adj = (1-r/2)+r*(dbeta(ph,a,b,0)/betamax(a,b)); //normalize by the max of the pdf across 25 samples 
+
+		  //		  cerr << "r " << r << " d " << d << " a " << a << " b " << b <<" adj " << adj <<endl;
 		  
-		  if ((d>=0)) ///hack to using the beta to do selection for more variance
+		  if ((d>0)) ///hack to using the beta to do selection for more variance
 		    ///yes the beta does this with a,b < 1 but there are infinite densities at the margins [0,1]
 		    {
+		      //		      cerr << "in the d>0 block ";
 		      adj = -1*(adj-1)+1;
+		      //		      cerr << "new adj "<<adj <<endl;
 		    }
 		  adj = adj -1 + getphenohab(hab,p,2)/2  ;
 		  sumadj = sumadj + getgpdemo(response,p)*adj;
 		}
 	    }
 	}
-    }
+      //      cerr << "sumadj "<<sumadj <<endl;
+      }
   return sumadj;
 }
 
@@ -1678,10 +1686,10 @@ appropriate column of the M[e] matrix.
 		      double Radj = getAdjDemo(6,searchI);
 		      double indKadj=kAdj+getAdjDemoDens(searchI); //strength of dens dependence on this ind
 		      if (indKadj>1) {indKadj = 1;}
-	      
+		      //		      cerr << "Radj "<<Radj<<" indKadj "<<indKadj << " noff before" << noff ;
 		      noff = floor(noff*Radj*indKadj);
 
-		      ///			  cerr << "noff after: "<<noff<<endl;
+		      //		      cerr << " noff after: "<<noff<<endl;
 		    
 		      for (q=0;q<noff;q++)
 			{

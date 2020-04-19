@@ -63,7 +63,6 @@ rland <- landscape.new.epoch(rland,S=S,R=R,M=M,
 for (i in 1:4)
     rland <- landscape.new.locus(rland,type=1,ploidy=2,mutationrate=0.00,transmission=0,numalleles=2)
 
-
 expmat <- matrix(c(  #4rows for 4 loci, 4 cols for 4 phenotypes
     1,0,0,0,
     0,1,0,0,

@@ -41,6 +41,18 @@
         }
         ok <- FALSE
     }
+    if (length(Rland$phenohab)!=8) {
+        if (verb) {
+            message("length of phenohab no equal to number of fitness components")
+        }
+        ok <- FALSE
+    }
+    if (sum(sapply(1:8, function(i) {Rland$intparam$habitats!=nrow(Rland$phenohab[[i]])}))>0) {
+            if (verb) {
+                message("phenohab matrices dont match number of habitats")
+            }
+        ok <- FALSE
+    }
     if (is.null(Rland$switchparam)) {
         if (verb) {
             message("switchparam not found.")
