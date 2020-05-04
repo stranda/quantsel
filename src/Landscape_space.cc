@@ -864,7 +864,7 @@ void Landscape_space::Survive()
       isz = I[i].size();
       double kAdj = (kvec[e][i/s]-static_cast<double>(isz))/kvec[e][i/s];//strength of density dependence on class
       if (kAdj<0) {kAdj=0;}
-      //      cerr << "kAdj "<<kAdj <<" kvec[e][i/s] "<<kvec[e][i/s] << " iszd "<<iszd<<endl;
+      //cerr << "kAdj "<<kAdj <<" kvec[e][i/s] "<<kvec[e][i/s] << " iszd "<<isz<<endl;
       I[i].ResetIndividuals();
       for (j=0;j<isz;j++)
 	{
@@ -872,7 +872,7 @@ void Landscape_space::Survive()
 	  indx = I[i].GetCurrentIndex();
 	  if ((indx<0)||(ind.GetClass()<0))
 	    {
-	      cerr << " run off the the end of the individual map for class " << i<<endl;
+	      //cerr << " run off the the end of the individual map for class " << i<<endl;
 	      assert(ind.GetClass()>=0);
 	    }
 	  if (ind.GetChanged()<t)
@@ -882,8 +882,9 @@ void Landscape_space::Survive()
 	      double indKadj=kAdj+getAdjDemoDens(ind); //strength of dens dependence on this ind
 	      
 	      if (indKadj>1) {indKadj = 1;}
+	      if (indKadj<0) {indKadj = 0;}
 
-	      //	      cerr << "indKadj " << indKadj << " kAdj "<<kAdj<<" Sadj "<<Sadj<<endl;
+	      //cerr << "indKadj " << indKadj << " kAdj "<<kAdj<<" Sadj "<<Sadj<<endl;
 	      
 	      S[e].SetRandomToStateVec(Sadj*indKadj);
 	      rs = S[e].RandomState();

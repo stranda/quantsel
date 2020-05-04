@@ -1191,7 +1191,7 @@ SEXP convert_metasim_to_R(Landscape_space_statistics &L)
 
   convert_R_to_metasim(Rland,L);
 
-  //  Rprintf("did initial conversion");
+  //   Rprintf("did initial conversion");
   
   L.ChooseEpoch();
   L.ConstructDemoMatrix();
@@ -1206,7 +1206,7 @@ SEXP convert_metasim_to_R(Landscape_space_statistics &L)
   	  L.Extirpate();
 	  //	  Rprintf("ran Extirpate");
 	  L.Survive();
-	  //	  Rprintf("ran survive");
+	  //      Rprintf("ran survive");
   	  L.LandCarry();
 	  //	  Rprintf("ran landcarry");
   	  L.HabCarry();

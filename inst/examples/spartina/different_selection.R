@@ -16,7 +16,7 @@ library(ggplot2)
 library(dplyr)
 source("setup_demography.R")
 
-onerep <- function(seedmix=0.1,repro=0.4,denstol=0.1, K=1000, gens=100,rep=1, plt=T)
+onerep <- function(seedmix=0.1,repro=0.4,denstol=0.1, K=1000, gens=100,rp=1, plt=T)
 {
     rland <- spartina.landscape(nloc=16, nphen=4, K=K,seedmix)  #simulate 16 loci and 4 phenotypes
     expmat <- matrix(c(  #16rows for 16 loci, 4 cols for 4 phenotypes
@@ -99,7 +99,6 @@ onerep <- function(seedmix=0.1,repro=0.4,denstol=0.1, K=1000, gens=100,rep=1, pl
     for (i in 1:gens)
     {
         print(dim(l$individuals))
-        print(dim(l$individuals))
         if (dim(l$individuals)[1]>0) l.old=l
         l=landscape.simulate(l,1)
         if (((i %% 1)==0)&(plt==T))
@@ -119,7 +118,15 @@ onerep <- function(seedmix=0.1,repro=0.4,denstol=0.1, K=1000, gens=100,rep=1, pl
         sumlst[[i]]$gen=i
     }
                                         #dev.off()
-    sumlst
+    phen <- do.call(rbind,lapply(sumlst,function(x){as.data.frame(x[["phenosum"]])}))
+    phen$rep <- rp
+    phen <- cbind(data.frame(sumlst[[1]]$treat[rep(1,nrow(phen)),]),phen)
+    print("phen done")
+    afrq <- do.call(rbind,lapply(sumlst,function(x){as.data.frame(x[["afreq"]])}))
+    print(dim(afrq))
+    afrq$rep <- rp
+    afrq <- cbind(data.frame(sumlst[[1]]$treat[rep(1,nrow(afrq)),]),afrq)
+    list(phen=phen,afrq=afrq)
 }
 
 ######################################## functions above execution below
@@ -127,7 +134,7 @@ onerep <- function(seedmix=0.1,repro=0.4,denstol=0.1, K=1000, gens=100,rep=1, pl
 if (!exists("multithread"))
     {
 
-        lst <- onerep()  #run one replicate of the simulation, you could add parameters like num gens, dispersal, selection
+        lst <- onerep(gens=10)  #run one replicate of the simulation, you could add parameters like num gens, dispersal, selection
                  #or just edit the function above
 
         sumdf <- do.call(rbind,lapply(lst,function(x) {x$phenosum}))
