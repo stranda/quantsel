@@ -16,7 +16,7 @@ library(ggplot2)
 library(dplyr)
 source("setup_demography.R")
 
-onerep <- function(seedmix=0.1,repro=0.4,denstol=0.1, K=1000, gens=100,rp=1, plt=T)
+onerep <- function(seedmix=0.001,repro=0.4,denstol=0.1, K=1000, gens=100,rp=1, sampint=10, plt=T)
 {
     rland <- spartina.landscape(nloc=16, nphen=4, K=K,seedmix)  #simulate 16 loci and 4 phenotypes
     expmat <- matrix(c(  #16rows for 16 loci, 4 cols for 4 phenotypes
@@ -79,7 +79,7 @@ onerep <- function(seedmix=0.1,repro=0.4,denstol=0.1, K=1000, gens=100,rp=1, plt
                  rep(c(1,2,denstol,0),rland$intparam$habitats-16)), #rest of strips
                nrow=rland$intparam$habitats,ncol=4,byrow=T)
 
-    rland <- landscape.new.phenohab(rland,fitcomp=8,ph=ph8) #adding selection for phenotype 7 (repro)
+    rland <- landscape.new.phenohab(rland,fitcomp=8,ph=ph8) #adding selection for phenotype 8 (dens)
 
     initpopsize <- 400
     inits <- matrix(initpopsize,ncol=rland$intparam$habitats,nrow=2)
@@ -94,28 +94,33 @@ onerep <- function(seedmix=0.1,repro=0.4,denstol=0.1, K=1000, gens=100,rp=1, plt
     
     phens=c(1,2,3,4) #represented as 0 in c++
 
-    sumlst=list()[1:gens]
-    
-    for (i in 1:gens)
+
+    sgens <- (gens%/%sampint) 
+
+    sumlst=list()[1:sgens]    
+    for (i in 1:sgens)
     {
         print(dim(l$individuals))
         if (dim(l$individuals)[1]>0) l.old=l
-        l=landscape.simulate(l,1)
-        if (((i %% 1)==0)&(plt==T))
+        l=landscape.simulate(l,ifelse(i==sgens,gens%%sampint,sampint))
+        if (plt==T)
         {
             par(mfrow=c(2,2))
             for (phen in phens)
                 landscape.plot.phenotypes(l,phen,F)
             par(mfrow=c(1,1))
         }
-        print(i)
-        print(dim(l$individuals))
+        
+        print(paste("Sample:",i,"Generation:",l$intparam$currentgen))
                                         #    print(landscape.allelefreq(l) )
         print(colMeans(landscape.phenotypes.c(l)))
-        sumlst[[i]] <- list(phenosum=cbind(gen=i,data.frame(landscape.phenosummary(l))),
-                            afreq=cbind(gen=i,landscape.allelefreq(l)),treat=cbind(seedmix=seedmix,repro=repro,denstol=denstol))
+        gn <- l$intparam$currentgen
+        sumlst[[i]] <- list(phenosum=cbind(gen=gn,data.frame(landscape.phenosummary(l))),
+                            afreq=cbind(gen=gn,landscape.allelefreq(l)),
+                            neigh=landscape.neighborhood(l),
+                            treat=cbind(seedmix=seedmix,repro=repro,denstol=denstol))
             
-        sumlst[[i]]$gen=i
+        sumlst[[i]]$gen=gn
     }
                                         #dev.off()
     phen <- do.call(rbind,lapply(sumlst,function(x){as.data.frame(x[["phenosum"]])}))
@@ -126,7 +131,8 @@ onerep <- function(seedmix=0.1,repro=0.4,denstol=0.1, K=1000, gens=100,rp=1, plt
     print(dim(afrq))
     afrq$rep <- rp
     afrq <- cbind(data.frame(sumlst[[1]]$treat[rep(1,nrow(afrq)),]),afrq)
-    list(phen=phen,afrq=afrq)
+    Nn <- do.call(rbind,lapply(sumlst,function(x){g=x[["gen"]];data.frame(gen=g,pop=1:length(x[["neigh"]]$Nn),Nn=x[["neigh"]]$Nn)}))
+    list(phen=phen,afrq=afrq,Nn=Nn,landscape=l)
 }
 
 ######################################## functions above execution below
@@ -134,7 +140,7 @@ onerep <- function(seedmix=0.1,repro=0.4,denstol=0.1, K=1000, gens=100,rp=1, plt
 if (!exists("multithread"))
     {
 
-        lst <- onerep(gens=10)  #run one replicate of the simulation, you could add parameters like num gens, dispersal, selection
+        lst <- onerep(seedmix=0.02,gens=500,sampint=50)  #run one replicate of the simulation, you could add parameters like num gens, dispersal, selection
                  #or just edit the function above
 
         sumdf <- do.call(rbind,lapply(lst,function(x) {x$phenosum}))

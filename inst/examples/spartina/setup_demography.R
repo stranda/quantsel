@@ -7,10 +7,10 @@ spartina.landscape <- function(nloc=1,
         rland <- landscape.new.empty()
         rland <- landscape.new.intparam(rland, h=50, s=2,np=nphen,totgen=20000,maxland=3e5)
         rland <- landscape.new.switchparam(rland,mp=0)
-        rland <- landscape.new.floatparam(rland,s=0,seedscale=c(40,100),
-                                          seedshape=c(1,50),seedmix=seedmix,
-                                          pollenscale=c(40,100),pollenshape=c(1,200),
-                                          pollenmix=0.1 , asp=1)
+        rland <- landscape.new.floatparam(rland,s=0,seedscale=c(10,60),
+                                          seedshape=c(1,100),seedmix=seedmix,
+                                          pollenscale=c(10,60),pollenshape=c(1,300),
+                                          pollenmix=0.005 , asp=1)
         
         
         S <- matrix(c(
