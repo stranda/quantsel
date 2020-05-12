@@ -132,6 +132,7 @@ onerep <- function(seedmix=0.001,repro=0.4,denstol=0.1, K=1000, gens=100,rp=1, s
     afrq$rep <- rp
     afrq <- cbind(data.frame(sumlst[[1]]$treat[rep(1,nrow(afrq)),]),afrq)
     Nn <- do.call(rbind,lapply(sumlst,function(x){g=x[["gen"]];data.frame(gen=g,pop=1:length(x[["neigh"]]$Nn),Nn=x[["neigh"]]$Nn)}))
+    Nn$rep <- rp
     list(phen=phen,afrq=afrq,Nn=Nn,landscape=l)
 }
 

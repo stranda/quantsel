@@ -10,8 +10,8 @@ plotPhenos1d <- function(dbfile="results.db",pheno=NULL,
 {
     if (!file.exists(dbfile)) stop (paste("Can't find ",dbfile))
     con <- DBI::dbConnect(RSQLite::SQLite(), dbname = dbfile) #connect to sqlite db on disk
-    phen_db <- tbl(con,"phen")
-    nm <- names(RSQLite::dbGetQuery(con,"SELECT * FROM phen LIMIT 1"))
+    phen_db <- tbl(con,"phenos")
+    nm <- names(RSQLite::dbGetQuery(con,"SELECT * FROM phenos LIMIT 1"))
     phennm <- nm[grep("phen",nm)]
     onm <- nm[-grep("phen",nm)]
     if (!is.null(pheno))
@@ -43,7 +43,7 @@ plotPhenos1d <- function(dbfile="results.db",pheno=NULL,
     {
             for (p in phennm)
             {
-                plt <- ggplot(focal_db,aes(x=pop,y=get(p),group=seedmix,color=seedmix)) + geom_smooth() +
+                plt <- ggplot(focal_db,aes(x=pop,y=get(p),group=K+seedmix,color=K+seedmix)) + geom_smooth() +
                     facet_wrap(~repro+denstol,labeller=label_both) + ggtitle(paste("Phenotype: ",p," Generation: ",gens))+
                     ylim(c(0,1))+
                     ylab(p) + xlab("transect coordinate 0=creek")
@@ -53,13 +53,13 @@ plotPhenos1d <- function(dbfile="results.db",pheno=NULL,
     } else {
         for (p in phennm)
         {
-            plt <- ggplot(focal_db,aes(x=gen,y=get(p),group=seedmix,color=seedmix)) + geom_smooth() +
+            plt <- ggplot(focal_db,aes(x=gen,y=get(p),group=K+seedmix,color=K+seedmix)) + geom_smooth() +
                 facet_wrap(~repro+denstol,labeller=label_both) + ggtitle(paste("Phenotype: ",p))+
                 ylim(c(0,1))+
                 ylab(p) + xlab("Time click")
             print(plt)
 
-            plt <- ggplot(focal_db,aes(x=gen,y=get(p),group=seedmix,color=seedmix)) + geom_smooth() +
+            plt <- ggplot(focal_db,aes(x=gen,y=get(p),group=K+seedmix,color=K+seedmix)) + geom_smooth() +
                 facet_wrap(repro+denstol~zone,labeller=label_both) + ggtitle(paste("Phenotype: ",p))+
                 ylim(c(0,1))+
                 ylab(p) + xlab("Time click")
