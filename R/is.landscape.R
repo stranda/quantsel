@@ -29,29 +29,30 @@
         }
         ok <- FALSE
     }
-    if (is.null(Rland$plasticity)) {
+    if (is.null(Rland$plasticity) && (Rland$intparam$nphen>0)) {
         if (verb) {
             message("plasticity not found.")
         }
         ok <- FALSE
     }
-    if (is.null(Rland$phenohab)) {
+    if (is.null(Rland$phenohab) && (Rland$intparam$nphen>0)) {
         if (verb) {
             message("phenohab not found.")
         }
         ok <- FALSE
     }
-    if (length(Rland$phenohab)!=8) {
+    if ((length(Rland$phenohab)!=8) && (Rland$intparam$nphen>0)) {
         if (verb) {
             message("length of phenohab no equal to number of fitness components")
         }
         ok <- FALSE
     }
-    if (sum(sapply(1:8, function(i) {Rland$intparam$habitats!=nrow(Rland$phenohab[[i]])}))>0) {
+    if (Rland$intparam$nphen>0)
+        if (sum(sapply(1:8, function(i) {Rland$intparam$habitats!=nrow(Rland$phenohab[[i]])}))>0) {
             if (verb) {
                 message("phenohab matrices dont match number of habitats")
             }
-        ok <- FALSE
+            ok <- FALSE
     }
     if (is.null(Rland$switchparam)) {
         if (verb) {
@@ -151,22 +152,22 @@
     }
 
 
-    if (is.null(Rland$expression)) {
+    if (is.null(Rland$expression) && (Rland$intparam$nphen>0)) {
         if (verb) {
             message("gpmap not found.")
         }
         ok <- FALSE
     }
-    
-    if (is.null(Rland$gpmap)) {
-        if (verb) {
-            message("gpmap not found.")
-        } 
-        ok <- FALSE
-    } else {
-        if (dim(Rland$gpmap)[2]!=Rland$intparam$nphen) {
-            if (verb) message("gpdemo does not have nphen columns")
+    if (Rland$intparam$nphen>0)
+        if (is.null(Rland$gpmap)) {
+            if (verb) {
+                message("gpmap not found.")
+            } 
             ok <- FALSE
+        } else {
+            if (dim(Rland$gpmap)[2]!=Rland$intparam$nphen) {
+                if (verb) message("gpdemo does not have nphen columns")
+                ok <- FALSE
             }
     }
 

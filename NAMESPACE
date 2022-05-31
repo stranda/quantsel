@@ -1,4 +1,6 @@
 useDynLib(quantsel)
+export(landscape.nophen,calc.k.vec)
+export(raster2popcrds)
 export(is.landscape)
 export(landscape.advance)
 export(landscape.allelecount)

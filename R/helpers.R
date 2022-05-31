@@ -88,27 +88,30 @@ landscape.plot.phenotypes <- function (rland, phen, annotate=T, palletfunc=terra
                  lwd = 2, border = "white",col="lightgrey")
         }
         if (length(landscape.populations(rland)) > 1) {
-            ph <- landscape.phenotypes.c(rland)[,phen]
-            sites <- landscape.populations(rland)
-            afreq <- landscape.allelefreq(rland)
-            icol <- floor(ph*10)
-            points(rland$individuals[, c(4, 5)], type = "p", 
-                   pch = 15 + (rland$individuals[, 1] - (rland$intparam$stages * 
-                                                        (landscape.populations(rland) - 1))),
-                   col = palletfunc(11)[icol + 1],
-                   cex = 0.6)
-        }
-        for (i in 1:rland$intparam$habitats)
-            if (annotate)
+            if (rland$intparam$nphen>0)
             {
+                    ph <- landscape.phenotypes.c(rland)[,phen]
+                    sites <- landscape.populations(rland)
+                    afreq <- landscape.allelefreq(rland)
+                    icol <- floor(ph*10)
+                    points(rland$individuals[, c(4, 5)], type = "p", 
+                           pch = 15 + (rland$individuals[, 1] - (rland$intparam$stages * 
+                                                                 (landscape.populations(rland) - 1))),
+                           col = palletfunc(11)[icol + 1],
+                           cex = 0.6)
+                }
+            for (i in 1:rland$intparam$habitats)
+                if (annotate)
+                {
+                    
+                    text(x=floor(rland$demography$epochs[[1]]$rightx[i]*0.99),
+                         y=floor(rland$demography$epochs[[1]]$topy[i]*0.97),
+                         labels=paste("Mean phenotype: ",round(mean(ph[sites==i]),3)),
+                         adj=1
+                         )
                 
-                text(x=floor(rland$demography$epochs[[1]]$rightx[i]*0.99),
-                     y=floor(rland$demography$epochs[[1]]$topy[i]*0.97),
-                     labels=paste("Mean phenotype: ",round(mean(ph[sites==i]),3)),
-                     adj=1
-                     )
-                
-            }           
+                }
+            }
 
 
     }

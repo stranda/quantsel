@@ -467,10 +467,13 @@ void convert_R_to_metasim(SEXP Rland, Landscape_space_statistics &L)
     R_to_metasim_float(getListElement(Rland,FLOATPARAMS),L);
     R_to_metasim_demography(getListElement(Rland,DEMOPARAMS),L);
     R_to_metasim_loci(getListElement(Rland,LOCIPARAMS),L);
-    R_to_metasim_expression(getListElement(Rland,EXPRESSIONPARAMS),L);
-    R_to_metasim_gpmap(getListElement(Rland,GPMAPPARAMS),L);
-    R_to_metasim_plasticity(getListElement(Rland,PLASTPARAMS),L);
-    R_to_metasim_phenohab(getListElement(Rland,PHENOHABPARAMS),L);
+    if (L.getnphen()>0)
+      {
+	R_to_metasim_expression(getListElement(Rland,EXPRESSIONPARAMS),L);
+	R_to_metasim_gpmap(getListElement(Rland,GPMAPPARAMS),L);
+	R_to_metasim_plasticity(getListElement(Rland,PLASTPARAMS),L);
+	R_to_metasim_phenohab(getListElement(Rland,PHENOHABPARAMS),L);
+      }
     R_to_metasim_ind(getListElement(Rland,INDPARAMS),L);
 
 
@@ -1121,12 +1124,13 @@ SEXP convert_metasim_to_R(Landscape_space_statistics &L)
     SET_VECTOR_ELT(Retlist, 2, metasim_to_R_float(L));
     SET_VECTOR_ELT(Retlist, 3, metasim_to_R_demography(L));
     SET_VECTOR_ELT(Retlist, 4, metasim_to_R_loci(L));
-    SET_VECTOR_ELT(Retlist, 5, metasim_to_R_expression(L));
-    SET_VECTOR_ELT(Retlist, 6, metasim_to_R_gpmap(L));
-
-
-    SET_VECTOR_ELT(Retlist, 7, metasim_to_R_plasticity(L));
-    SET_VECTOR_ELT(Retlist, 8, metasim_to_R_phenohab(L));
+    if (L.getnphen()>0)
+      {
+	SET_VECTOR_ELT(Retlist, 5, metasim_to_R_expression(L));
+	SET_VECTOR_ELT(Retlist, 6, metasim_to_R_gpmap(L));
+	SET_VECTOR_ELT(Retlist, 7, metasim_to_R_plasticity(L));
+	SET_VECTOR_ELT(Retlist, 8, metasim_to_R_phenohab(L));
+      }
     SET_VECTOR_ELT(Retlist, 9, metasim_to_R_ind(L));
 
     ///Names of elements in the return list
@@ -1137,10 +1141,13 @@ SEXP convert_metasim_to_R(Landscape_space_statistics &L)
     SET_STRING_ELT(Retlistn, 2, mkChar(FLOATPARAMS));
     SET_STRING_ELT(Retlistn, 3, mkChar(DEMOPARAMS));
     SET_STRING_ELT(Retlistn, 4, mkChar(LOCIPARAMS));
-    SET_STRING_ELT(Retlistn, 5, mkChar(EXPRESSIONPARAMS));
-    SET_STRING_ELT(Retlistn, 6, mkChar(GPMAPPARAMS));
-    SET_STRING_ELT(Retlistn, 7, mkChar(PLASTPARAMS));
-    SET_STRING_ELT(Retlistn, 8, mkChar(PHENOHABPARAMS));
+    if (L.getnphen()>0)
+      {
+	SET_STRING_ELT(Retlistn, 5, mkChar(EXPRESSIONPARAMS));
+	SET_STRING_ELT(Retlistn, 6, mkChar(GPMAPPARAMS));
+	SET_STRING_ELT(Retlistn, 7, mkChar(PLASTPARAMS));
+	SET_STRING_ELT(Retlistn, 8, mkChar(PHENOHABPARAMS));
+      }
     SET_STRING_ELT(Retlistn, 9, mkChar(INDPARAMS));
     setAttrib(Retlist, R_NamesSymbol, Retlistn);
 
@@ -1412,7 +1419,7 @@ SEXP populate_Rland(SEXP Rland, SEXP Population_sizes)
     //    Rprintf("entered popsizeset \n");
     Landscape_space_statistics L;
     vector<int> ps;
-    //    Rprintf("intialized landscape and popsize vector \n");
+    Rprintf("intialized landscape and popsize vector \n");
     if (!isNewList(Rland))
     {
       error( "R landscape object should be a list");
@@ -1426,16 +1433,20 @@ SEXP populate_Rland(SEXP Rland, SEXP Population_sizes)
     R_to_metasim_loci(getListElement(Rland,LOCIPARAMS),L);
     
     // Rprintf("selfrate: %g \n",s);
-    //    Rprintf("set everything up to expression \n");
-
-    R_to_metasim_expression(getListElement(Rland,EXPRESSIONPARAMS),L);
-    R_to_metasim_gpmap(getListElement(Rland,GPMAPPARAMS),L);
-    R_to_metasim_plasticity(getListElement(Rland,PLASTPARAMS),L);
-    R_to_metasim_phenohab(getListElement(Rland,PHENOHABPARAMS),L);
+    Rprintf("set everything up to expression \n");
+    Rprintf("L.getnphen = %i \n",L.getnphen());
+    
+    if (L.getnphen()>0)
+      {
+	R_to_metasim_expression(getListElement(Rland,EXPRESSIONPARAMS),L);
+	R_to_metasim_gpmap(getListElement(Rland,GPMAPPARAMS),L);
+	R_to_metasim_plasticity(getListElement(Rland,PLASTPARAMS),L);
+	R_to_metasim_phenohab(getListElement(Rland,PHENOHABPARAMS),L);
+      }
     ps = sexp_int_to_vector(Population_sizes);
     //    Rprintf("set everything up to popsizeset \n");
     L.popsizeset(ps);
-    //    Rprintf("about to return but must run convert_metasim_to_R \n");
+    Rprintf("about to return but must run convert_metasim_to_R \n");
     return convert_metasim_to_R(L);
     return 0;
   }
@@ -1448,8 +1459,9 @@ SEXP phenotypes(SEXP Rland)
   int i, l, n;
 
   convert_R_to_metasim(Rland,L);
-  inmat=L.Phenotypes();
 
+  inmat=L.Phenotypes();
+  
   l=inmat.size();
   //  Rprintf("inmat.size(): %i",l);
   SEXP retvec= PROTECT(allocVector(REALSXP,l));

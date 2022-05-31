@@ -804,43 +804,46 @@ double Landscape_space::getAdjDemoDens(PackedIndividual_space Ind)
   double mx = 0;
   double sumadj = 0.0;
 
-  for (int i=0;i<getnphen();i++)
-    if (getgpdemo(response,i)>mx)
-      mx=getgpdemo(response,i);
-  if (mx>0) ///at least one phenotype contributes to response 
-    { //make sure that there could be a phenotype (ie there are at least gpd phenotypes)
-      int hab = Ind.GetClass()/getstages();  ///c++ is supposed to do integer division
-                                             ///hab should contain the index for the habitat
-      for (int p=0;p<getnphen();p++)
-	{
-	  if (getgpdemo(response,p)>0)
+  if (getnphen()>0)
+    {
+      for (int i=0;i<getnphen();i++)
+	if (getgpdemo(response,i)>mx)
+	  mx=getgpdemo(response,i);
+      if (mx>0) ///at least one phenotype contributes to response 
+	{ //make sure that there could be a phenotype (ie there are at least gpd phenotypes)
+	  int hab = Ind.GetClass()/getstages();  ///c++ is supposed to do integer division
+	  ///hab should contain the index for the habitat
+	  for (int p=0;p<getnphen();p++)
 	    {
-	      double a=getphenohab(hab,response,0); //'alpha' from beta distribution
-	      double b=getphenohab(hab,response,1); //'beta' from beta distribution
-	      if ((a>=1)&(b>=1))
+	      if (getgpdemo(response,p)>0)
 		{
-		  double r=getphenohab(hab,response,2); //Range around 1.0 for final multiplier
-		  double d=getphenohab(hab,response,3); //Direction for selection for low (0) and
-		  //high (1) variance. See comment below at if(d>0)
-		  double ph = IndividualPhenotype(Ind)[p]; //the phenotype for the 'response' trait (includes plasticity)
-		  adj = (1-r/2)+r*(dbeta(ph,a,b,0)/betamax(a,b)); //normalize by the max of the pdf across 25 samples 
-
-		  //		  cerr << "r " << r << " d " << d << " a " << a << " b " << b <<" adj " << adj <<endl;
-		  
-		  if ((d>0)) ///hack to using the beta to do selection for more variance
-		    ///yes the beta does this with a,b < 1 but there are infinite densities at the margins [0,1]
+		  double a=getphenohab(hab,response,0); //'alpha' from beta distribution
+		  double b=getphenohab(hab,response,1); //'beta' from beta distribution
+		  if ((a>=1)&(b>=1))
 		    {
-		      //		      cerr << "in the d>0 block ";
-		      adj = -1*(adj-1)+1;
-		      //		      cerr << "new adj "<<adj <<endl;
+		      double r=getphenohab(hab,response,2); //Range around 1.0 for final multiplier
+		      double d=getphenohab(hab,response,3); //Direction for selection for low (0) and
+		      //high (1) variance. See comment below at if(d>0)
+		      double ph = IndividualPhenotype(Ind)[p]; //the phenotype for the 'response' trait (includes plasticity)
+		      adj = (1-r/2)+r*(dbeta(ph,a,b,0)/betamax(a,b)); //normalize by the max of the pdf across 25 samples 
+		      
+		      //		  cerr << "r " << r << " d " << d << " a " << a << " b " << b <<" adj " << adj <<endl;
+		      
+		      if ((d>0)) ///hack to using the beta to do selection for more variance
+			///yes the beta does this with a,b < 1 but there are infinite densities at the margins [0,1]
+			{
+			  //		      cerr << "in the d>0 block ";
+			  adj = -1*(adj-1)+1;
+			  //		      cerr << "new adj "<<adj <<endl;
+			}
+		      adj = adj -1 + getphenohab(hab,p,2)/2  ;
+		      sumadj = sumadj + getgpdemo(response,p)*adj;
 		    }
-		  adj = adj -1 + getphenohab(hab,p,2)/2  ;
-		  sumadj = sumadj + getgpdemo(response,p)*adj;
 		}
-	    }
+	    } //end forloop
 	}
       //      cerr << "sumadj "<<sumadj <<endl;
-      }
+    }
   return sumadj;
 }
 
@@ -1387,46 +1390,50 @@ std::vector< double > Landscape_space::IndividualPhenotype(PackedIndividual_spac
   double ac;
   int p,l, st, pl, al;
 
-  rvec.resize(np);
-
-  //  cerr<<"New individuals phenotype"<<endl;
+  //  rvec(0)=1.0;
   
-  if (hsq.size()!=np) 
-    {cerr<<"mismatched heritabilities and phenotype dimensions"<<endl;
-      assert(0==1);}
-  for (p=0;p<np;p++)
+  if (np>0)
     {
-      //      cerr<<"phen: "<<p<<endl;
-      ac=0.0;
-      for (l=0;l<int(nl);l++)
+      rvec.resize(np);
+      //  cerr<<"New individuals phenotype"<<endl;
+      
+      if (hsq.size()!=np) 
+	{cerr<<"mismatched heritabilities and phenotype dimensions"<<endl;
+	  assert(0==1);}
+      for (p=0;p<np;p++)
 	{
-	  //	  cerr<<"locus: "<<l<<endl;
-	  pl=LocusGetPloidy(l);
-	  if (Atbls[l]->getClassType()==STEPALLELETBL)
+	  //      cerr<<"phen: "<<p<<endl;
+	  ac=0.0;
+	  for (l=0;l<int(nl);l++)
 	    {
-	      st=0;
-	      for (al=0;al<pl;al++)
+	      //	  cerr<<"locus: "<<l<<endl;
+	      pl=LocusGetPloidy(l);
+	      if (Atbls[l]->getClassType()==STEPALLELETBL)
 		{
-		  //		   cerr<<"allele: "<<al<<endl;
-		  LocusGetAlleleRef(l,ind.GetAllele(l,al),&ali);
-		  if (ali.GetState()==addstates[l])
+		  st=0;
+		  for (al=0;al<pl;al++)
 		    {
-		      st++;
-		      //		      cerr << "alleleState: "<<ali.GetState()<<", addStates[l] "<<addstates[l]<< ", state "<<st<<endl;	      
-		    } else {
-		    //		      cerr << "nomatch alleleState: "<<ali.GetState()<<", addStates[l] "<<addstates[l]<< ", state "<<st<<endl;	      
-		  }
+		      //		   cerr<<"allele: "<<al<<endl;
+		      LocusGetAlleleRef(l,ind.GetAllele(l,al),&ali);
+		      if (ali.GetState()==addstates[l])
+			{
+			  st++;
+			  //		      cerr << "alleleState: "<<ali.GetState()<<", addStates[l] "<<addstates[l]<< ", state "<<st<<endl;	      
+			} else {
+			//		      cerr << "nomatch alleleState: "<<ali.GetState()<<", addStates[l] "<<addstates[l]<< ", state "<<st<<endl;	      
+		      }
+		    }
+		  ac = ac+(st * getexpmatel(l,p));
+		  //	      cerr << "ac "<<ac<<", expmat[l][p]: "<<expmat[l][p]<<endl;
 		}
-	      ac = ac+(st * getexpmatel(l,p));
-	      //	      cerr << "ac "<<ac<<", expmat[l][p]: "<<expmat[l][p]<<endl;
 	    }
+	  ///plasticity is a number multiplied by the phenotype value.  There is then noise added depending on hsq
+	  double rv = (ac + RandLibObj.normal(0, (ac * (1-hsq[p])))) * getplasticity(ind.GetClass()/getstages(),p) ;
+	  if (rv>1) rv=1.0;
+	  if (rv<0) rv=0.0;
+	  rvec[p] = rv;
+	  //      cerr<<"current ac: "<<ac<<endl;
 	}
-      ///plasticity is a number multiplied by the phenotype value.  There is then noise added depending on hsq
-      double rv = (ac + RandLibObj.normal(0, (ac * (1-hsq[p])))) * getplasticity(ind.GetClass()/getstages(),p) ;
-      if (rv>1) rv=1.0;
-      if (rv<0) rv=0.0;
-      rvec[p] = rv;
-      //      cerr<<"current ac: "<<ac<<endl;
     }
   return rvec;
 }
@@ -1449,6 +1456,8 @@ std::vector< double > Landscape_space::Phenotypes()
   tmpvec.resize(np);
   //  cerr<<"sz: "<<sz<<endl;
   //  retvec.resize(sz);
+
+
   for (k=0;k<cls;k++)
     {
       //  cerr<<"class k " <<k<<endl;
@@ -1458,8 +1467,11 @@ std::vector< double > Landscape_space::Phenotypes()
 	{
 	  idx=I[k].GetCurrentIndex();
 	  //	  cerr << "get current index:  " << idx << endl;
-	  tmpvec=IndividualPhenotype(I[k].GetIndividual(idx));
-	  I[k].NextIndividual();
+
+          tmpvec=IndividualPhenotype(I[k].GetIndividual(idx));
+	  //  cerr << "inside L.Phenotypes....this far" <<endl ;
+
+  I[k].NextIndividual();
 	  for (j=0;j<np;j++)
 	    {
 	      //	      cerr << "tmpvec:" << tmpvec[j] <<endl;

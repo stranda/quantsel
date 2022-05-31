@@ -1,3 +1,6 @@
+
+5/31/22 v0.13 Should work for no phenotypes also (just marker genetics).  Added some functions to extract data from rasters to determine the suitability surface
+
 4/9/20	Changed package so significantly that it is now quantsel v.0.12.0 instead of kernelpop
 	
 ver 0.11.5
