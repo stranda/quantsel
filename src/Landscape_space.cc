@@ -1600,17 +1600,18 @@ void Landscape_space::Reproduce()
       //cerr <<"checkpoint in reproduce"<<endl;
       if (R[e].AnyFrom(k)) ///find out if offspring can be produced by this class
 	{
-	  R[e].SetFromState(k);
+	  //	  R[e].SetFromState(k); //now using R[e].GetElement()
 	  tmpmales.clear();
 	  valid_males.clear();
-	  M[e].SetToState(k);
+	  //	  M[e].SetToState(k); //now using M[e].GetElement()
   ///get the individuals in all classes that can contribute male gametes 
   ///and put them in a single vector
   
 	  for (i=0;i<sz;i++)
 	    { 
-	      M[e].SetFromState(i);
-	      if (M[e].Value()>0)
+	      //	      M[e].SetFromState(i);
+	      //	      if (M[e].Value()>0)
+	      if (M[e].GetElement(i,k)>0)
 		{
 		  tmpmales = I[i].ReturnAsVector();
 		  valid_males.insert(valid_males.end(),tmpmales.begin(),tmpmales.end()); //Trying to add all the males to a single vector here....
@@ -1623,7 +1624,7 @@ void Landscape_space::Reproduce()
 	  
 	  // cerr <<"valid_males.size() "<<valid_males.size()<<endl;
 	  
-	  I[k].CompressClass(0.5);///save space (may help speed )
+	  //	  I[k].CompressClass(0.5);///save space (may help speed )
 	  I[k].ResetIndividuals();///set an internal pointer to I[k] first ind in list
 	  
 	  lsz=I[k].size();
@@ -1640,10 +1641,9 @@ void Landscape_space::Reproduce()
 		  assert(searchI.GetClass()==0);
 		}
 	      indx = I[k].GetCurrentIndex();
-	      ///decides where pollen comes from 
+	      ///decides where pollen comes from
+	      //males will need to be private  
 	      males.clear();
-
-	      
 	      males = CalculateMaleGameteClassVectorApproxDist(searchI); //this is the approximate solution (dist method)
 
 
@@ -1756,6 +1756,7 @@ appropriate column of the M[e] matrix.
 			      ///Mendelian genetics plus mutation takes place
 			      //			      cerr << "mother "<<searchI;
 			      //			      cerr <<"mate "<<mate <<endl;
+			      //
 			      tmpI = searchI.repro_sex(searchI,mate,t,Atbls);
 			      ///this could/should be made user selectable
 			      bsecls = j - (Habitat(j) * s) ; 
