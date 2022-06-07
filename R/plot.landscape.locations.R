@@ -17,10 +17,11 @@
 #' 
 #' @param rland landscape
 #' @param adults vector of stages to select and plot, if NULL, plot all stages
+#' @param label boolean to indicate if cells labeled (default FALSE)
 #' @return NULL
 #' @keywords misc
 #' @export landscape.plot.locations
-landscape.plot.locations <- function(rland,adults=c(NULL))
+landscape.plot.locations <- function(rland,adults=c(NULL),label=FALSE)
   {
     if (is.landscape(rland,FALSE))
       {
@@ -36,6 +37,9 @@ landscape.plot.locations <- function(rland,adults=c(NULL))
                  rland$demography$epochs[[1]]$rightx[i],
                  rland$demography$epochs[[1]]$topy[i],
                  lwd=2,border=i)
+            if (label) text(x=(rland$demography$epochs[[1]]$rightx[i]+rland$demography$epochs[[1]]$leftx[i])/2,
+                 y=(rland$demography$epochs[[1]]$boty[i]+rland$demography$epochs[[1]]$topy[i])/2,
+                 as.character(i-1),cex=0.5)
           }
         if (length(landscape.populations(rland))>1)
           {

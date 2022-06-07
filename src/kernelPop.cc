@@ -39,6 +39,8 @@ extern "C" {
     L.setndemo((asInteger(getListElement(inlist,DNUMNAME   ))));
     L.setranddemo((asInteger(getListElement(inlist,RDEMONAME))));
     L.setnphen((asInteger(getListElement(inlist,NPHENNAME))));
+    L.setrows((asInteger(getListElement(inlist,NROWNAME))));
+    L.setcols((asInteger(getListElement(inlist,NCOLNAME))));
     L.setMaxLandSize((asInteger(getListElement(inlist,MAXLANDNAME))));
   }
   
@@ -463,6 +465,8 @@ void convert_R_to_metasim(SEXP Rland, Landscape_space_statistics &L)
 	error( "R landscape object should be a list");
       }
     R_to_metasim_ints(getListElement(Rland,INTEGERPARAMS),L);
+
+    
     R_to_metasim_switches(getListElement(Rland,SWITCHPARAMS),L);
     R_to_metasim_float(getListElement(Rland,FLOATPARAMS),L);
     R_to_metasim_demography(getListElement(Rland,DEMOPARAMS),L);
@@ -475,8 +479,6 @@ void convert_R_to_metasim(SEXP Rland, Landscape_space_statistics &L)
 	R_to_metasim_phenohab(getListElement(Rland,PHENOHABPARAMS),L);
       }
     R_to_metasim_ind(getListElement(Rland,INDPARAMS),L);
-
-
 }
 
   
@@ -506,9 +508,10 @@ read in landscapes
 
   SEXP metasim_to_R_ints(Landscape_space_statistics &L)
   {
+    //    Rprintf("converting to R list");
     ///allocate the scalar values that describe the landscape to 'Slist'
-    SEXP Slistn = PROTECT(allocVector (STRSXP,11));
-    SEXP Slist = PROTECT(allocVector (VECSXP,11));
+    SEXP Slistn = PROTECT(allocVector (STRSXP,13));
+    SEXP Slist = PROTECT(allocVector (VECSXP,13));
 
     SET_STRING_ELT(Slistn, 0, mkChar(HABNAMES    )); 
     SET_STRING_ELT(Slistn, 1, mkChar(STAGENAME   )); 
@@ -520,7 +523,9 @@ read in landscapes
     SET_STRING_ELT(Slistn, 7, mkChar(DNUMNAME    )); 
     SET_STRING_ELT(Slistn, 8, mkChar(MAXLANDNAME ));
     SET_STRING_ELT(Slistn, 9, mkChar(NPHENNAME   ));
-    SET_STRING_ELT(Slistn, 10, mkChar(RDEMONAME   ));
+    SET_STRING_ELT(Slistn, 10, mkChar(NROWNAME   ));
+    SET_STRING_ELT(Slistn, 11, mkChar(NCOLNAME   ));
+    SET_STRING_ELT(Slistn, 12, mkChar(RDEMONAME   ));
 
     setAttrib(Slist, R_NamesSymbol, Slistn);
 
@@ -534,9 +539,12 @@ read in landscapes
     SET_VECTOR_ELT(Slist, 7, ScalarReal(L.getndemo()));
     SET_VECTOR_ELT(Slist, 8, ScalarReal(L.getMaxLandSize()));
     SET_VECTOR_ELT(Slist, 9, ScalarReal(L.getnphen()));
-    SET_VECTOR_ELT(Slist, 10, ScalarReal(L.getranddemo()));
+    SET_VECTOR_ELT(Slist, 10, ScalarReal(L.getrows()));
+    SET_VECTOR_ELT(Slist, 11, ScalarReal(L.getcols()));
+    SET_VECTOR_ELT(Slist, 12, ScalarReal(L.getranddemo()));
 
     UNPROTECT(2);
+    //    Rprintf("converted from internal back to R list");
     return Slist;
   }
 
@@ -1198,7 +1206,7 @@ SEXP convert_metasim_to_R(Landscape_space_statistics &L)
 
   convert_R_to_metasim(Rland,L);
 
-  //   Rprintf("did initial conversion");
+  //  Rprintf("in iterate_landscape, did initial conversion\n");
   
   L.ChooseEpoch();
   L.ConstructDemoMatrix();
@@ -1219,7 +1227,7 @@ SEXP convert_metasim_to_R(Landscape_space_statistics &L)
   	  L.HabCarry();
 	  //	  Rprintf("ran habcarry");
 	  L.Reproduce();
-	  //	  Rprintf("ran reproduce");
+	  //	  Rprintf("ran reproduce\n");
 	  L.Advance();
 	}
     }
@@ -1244,8 +1252,8 @@ SEXP convert_metasim_to_R(Landscape_space_statistics &L)
   //end debug
   */
 
-  //    Rprintf("about to convert back to R format");
-  
+
+  Rprintf("in iterate_landscape, converting back to R\n");
   return convert_metasim_to_R(L);
 }
 
@@ -1429,12 +1437,12 @@ SEXP populate_Rland(SEXP Rland, SEXP Population_sizes)
     R_to_metasim_float(getListElement(Rland,FLOATPARAMS),L);
     //    Rprintf("set everything up to demography \n");
     R_to_metasim_demography(getListElement(Rland,DEMOPARAMS),L);
-    //Rprintf("set everything up to loci \n");
+    //    Rprintf("set everything up to loci \n");
     R_to_metasim_loci(getListElement(Rland,LOCIPARAMS),L);
     
     // Rprintf("selfrate: %g \n",s);
-    Rprintf("set everything up to expression \n");
-    Rprintf("L.getnphen = %i \n",L.getnphen());
+    //    Rprintf("set everything up to expression \n");
+    //    Rprintf("L.getnphen = %i \n",L.getnphen());
     
     if (L.getnphen()>0)
       {
@@ -1446,7 +1454,7 @@ SEXP populate_Rland(SEXP Rland, SEXP Population_sizes)
     ps = sexp_int_to_vector(Population_sizes);
     //    Rprintf("set everything up to popsizeset \n");
     L.popsizeset(ps);
-    Rprintf("about to return but must run convert_metasim_to_R \n");
+    //    Rprintf("about to return but must run convert_metasim_to_R \n");
     return convert_metasim_to_R(L);
     return 0;
   }

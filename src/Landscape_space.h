@@ -185,7 +185,7 @@ protected:
   ///during the execution of Landscape_space::Reproduce()
   ///it saves recalculating the vector over and over for 
   ///each mother
-  vector < PackedIndividual_space > valid_males;  
+  //  vector < PackedIndividual_space > valid_males;  //no longer a member recalc in Reproduce()
 
   ///similarly, occupied_subpops indicates which subpops have
   ///males in them and is reset each Reproduce() call
@@ -206,6 +206,12 @@ protected:
   ///number of phenotypes to express
   int nphen;
 
+  ///number of columns in the landscape (assuming grid populations)
+  int cols;
+
+  ///number of rows in the landscape (assuming grid populations)
+  int rows;
+  
   ///aspect ratio (number times y mean relative to x mean)
   double asp;
 
@@ -380,6 +386,8 @@ public:
   inline void setpollen_mix(double mx=1) {pollen_mix=mx;}
 
   inline void setnphen(int p=1){nphen=p;}
+  inline void setrows(int r=0){rows=r;}
+  inline void setcols(int c=0){cols=c;}
 
   inline void setaspect(double as=0){asp=as;}
   inline void setmindens(double md=0){mindens=md;}
@@ -419,6 +427,10 @@ public:
   inline int gethabs() {return nhab;}
   inline int getstages() {return s;}
 
+/// find the population based on the demographic stage
+///
+  inline int habfromstage(int stg) {return stg/getstages();}
+  
   inline double getseed_mu() {return seed_mu;}
   inline double getseed_mu2() {return seed_mu2;}
   inline double getseed_nmu() {return seed_nmu;}
@@ -453,6 +465,8 @@ public:
   inline int getMaxLandSize() {return maxlandsz;}
 
   inline int getnphen(){return nphen;}
+  inline int getrows(){return rows;}
+  inline int getcols(){return cols;}
 
   //  inline double getSubPop() {return SubPopSize;}
 
@@ -570,11 +584,12 @@ void getextinct(int ep, double *ev);
 void setk(int ep, int *cv);
   ///Get carry capacity vector(s).  0..nhab habitats. 'ep' is the epoch
 void getk(int ep, int *cv);
-
   ///set the coordinates of the rectangular shaped populations
 void setpoploc(int ep, double *lx, double *rx,double *topy, double *boty);
 void getpoploc(int ep, double *lx, double *rx,double *topy, double *boty);
 
+  std::vector<int> getSurroundingPops(int stg, double radius);
+  
   ///takes an x and y coordinate and returns the population that contains that coordinate
   ///if found outside of any population, returns -1
   int  getpopulation(double x, double y);
@@ -752,7 +767,7 @@ are located in the subpopulation
     ***command: RandLibObj.FreeDiscreteLookup();
 
 */
-vector < PackedIndividual_space > CalculateMaleGameteClassVector(PackedIndividual_space pi);
+vector < PackedIndividual_space > CalculateMaleGameteClassVector(PackedIndividual_space pi, vector< PackedIndividual_space > valid_males);
 
 /** 
 
@@ -766,7 +781,7 @@ pull from a pollen dispersal kernel.
     ***command: RandLibObj.FreeDiscreteLookup();
 
 */
-vector < PackedIndividual_space > CalculateMaleGameteClassVectorApproxBand(PackedIndividual_space pi);
+vector < PackedIndividual_space > CalculateMaleGameteClassVectorApproxBand(PackedIndividual_space pi, vector< PackedIndividual_space > valid_males);
 
 /** 
 
@@ -780,7 +795,7 @@ pull from a pollen dispersal kernel.
     ***command: RandLibObj.FreeDiscreteLookup();
 
 */
-vector < PackedIndividual_space > CalculateMaleGameteClassVectorApproxBandGrid(PackedIndividual_space pi);
+vector < PackedIndividual_space > CalculateMaleGameteClassVectorApproxBandGrid(PackedIndividual_space pi, vector< PackedIndividual_space > valid_males);
 
 /** 
 
@@ -794,7 +809,7 @@ pull from a pollen dispersal kernel.
     ***command: RandLibObj.FreeDiscreteLookup();
 
 */
-vector < PackedIndividual_space > CalculateMaleGameteClassVectorApproxDist(PackedIndividual_space pi);
+vector < PackedIndividual_space > CalculateMaleGameteClassVectorApproxDist(PackedIndividual_space pi, vector< PackedIndividual_space > valid_males);
 
 
   /**

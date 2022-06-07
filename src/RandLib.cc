@@ -94,11 +94,11 @@ int RandLib::PickMultinomial()
 {
   int i;
   int *resvec = new int[lp.size()];
-  double *pvec = new double[lp.size()];
-  for (i=0;i<int(lp.size());i++)
-    {
-      pvec[i]=lp[i];
-    }
+  double *pvec = &lp[0];
+  //  for (i=0;i<int(lp.size());i++)
+  //  {
+  //    pvec[i]=lp[i];
+  //  }
   rmultinom(1,pvec,int(lp.size()),resvec);
   i=0;
   while (resvec[i]<1)
@@ -113,7 +113,6 @@ int RandLib::PickMultinomial()
 int RandLib::multinomial(double *p, int ncat)
 {
   int rv;
-
   SetDiscreteLookup(p,ncat);
   rv = PickMultinomial();
   return rv;

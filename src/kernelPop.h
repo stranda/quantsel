@@ -39,7 +39,9 @@ Defines:
 #define	FINALAGE	 "totalgens"    
 #define	DNUMNAME	 "numdemos"     
 #define	MAXLANDNAME	 "maxlandsize"  
-#define	NPHENNAME	 "nphen"  
+#define	NPHENNAME	 "nphen"
+#define	NCOLNAME	 "cols"
+#define	NROWNAME	 "rows"  
 #define RDEMONAME        "randdemo"
 
 

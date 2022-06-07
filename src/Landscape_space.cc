@@ -745,7 +745,7 @@ double Landscape_space::getAdjDemo(int response, PackedIndividual_space Ind)
   //cerr << "response" << response <<endl;
   //  Now get information about possible feedback between phenotype and survival (selection)
     
-    double phenMidpoint=0.5; ///assumes that phenotypes range 0-1.  The expression matrix determines this
+  double phenMidpoint=0.5; ///assumes that phenotypes range 0-1.  The expression matrix determines this
   double adj = 1.0;  //the survival prob adjustment factor (1.0 = no selection on survival)
   double mx = 0;
   double meanadj = 0;
@@ -938,7 +938,7 @@ void Landscape_space::Survive()
 This method returns a vector of males and initializes a vector of probs of choosing each male as a father
 
 */
-vector< PackedIndividual_space >  Landscape_space::CalculateMaleGameteClassVector(PackedIndividual_space pi)
+vector< PackedIndividual_space >  Landscape_space::CalculateMaleGameteClassVector(PackedIndividual_space pi, vector< PackedIndividual_space > valid_males)
 {
   int i,sz;
   size_t j;
@@ -1161,7 +1161,7 @@ finding the individuals within a distance band.  This should be faster than the 
 there is only a single random variate pulled and squaring is faster than pow()
 
 */
-vector< PackedIndividual_space >  Landscape_space::CalculateMaleGameteClassVectorApproxBand(PackedIndividual_space pi)
+vector< PackedIndividual_space >  Landscape_space::CalculateMaleGameteClassVectorApproxBand(PackedIndividual_space pi, vector< PackedIndividual_space > valid_males)
 {
   int i,sz;
 
@@ -1304,7 +1304,7 @@ finding the individuals within a distance band.  This should be faster than the 
 there is only a single random variate pulled and squaring is faster than pow()
 
 */
-vector< PackedIndividual_space >  Landscape_space::CalculateMaleGameteClassVectorApproxDist(PackedIndividual_space pi)
+vector< PackedIndividual_space >  Landscape_space::CalculateMaleGameteClassVectorApproxDist(PackedIndividual_space pi, vector< PackedIndividual_space > valid_males)
 {
   int i,sz;
   //  int dclass = nhab * s;
@@ -1515,6 +1515,51 @@ void Landscape_space::testfindmate(PackedIndividual_space pi)
 }
 
 
+/// assuming that populations are arranged in some sort of grid arrangement
+/// find the population ids that surround a particular habitat/population
+///
+std::vector<int> Landscape_space::getSurroundingPops(int stg, double radius)
+{
+  int fp = habfromstage(stg); //focal population to find surrounding pops
+  int p; //population
+  double centx, centy;  //center of focal pop
+  double x, y, stp=0.2 * radius * 2;
+  vector<int> popids;
+    
+  centx=(popleftx[e][fp]+poprightx[e][fp])/2;
+  centy=(popboty[e][fp]+poptopy[e][fp])/2;
+
+  //basically going to create a buch of points in a square bounded by the radius
+  x=centx-radius;
+  y=centy-radius;
+
+  popids.push_back(fp); //include the focal population as a source of mates
+  
+  //  cerr << "first: x: "<<x<<", y: "<<y<<", radius: "<<radius <<", centx: "<<centx<<", centy: "<<centy <<", stp: "<<stp<< endl;
+  while (x<(centx+radius))
+    {
+      while (y<(centy+radius))
+	{
+	  p  = getpopulation(x,y);
+
+	  if (p>=0)
+	    {
+	      popids.push_back(p);
+	      //	  cerr << "x: "<<x<<", y: "<<y  <<", result from getpopulation(): "<<getpopulation(x,y)<<endl;
+	    }
+	  y=y+stp;
+	}
+      x=x+stp;
+      y=centy-radius;
+    }
+  //  cerr << "length of surrounding pops"<< popids.size() <<endl;
+  ///next three lines sorts the vector and returns the unique values
+  sort(popids.begin(),popids.end());
+  auto last=unique(popids.begin(),popids.end());
+  popids.erase(last, popids.end());
+  return popids;
+}
+
 ///takes an x and y coordinate and returns the population that contains that coordinate
 ///if found outside of any population, returns -1
 int  Landscape_space::getpopulation(double x, double y)
@@ -1534,38 +1579,8 @@ int  Landscape_space::getpopulation(double x, double y)
   return pop;
 }
 
-/*
-///takes an x and y coordinate and returns the subpopulation that contains that coordinate
-///if found outside of any subpopulation, returns -1
-int  Landscape_space::getsubpopulation(double x, double y)
-{
-  int i;
-  int subpop, found;
-  subpop=-1;
-  found=0;
-  i=0;
-  cerr << "finding subpopulation for x,y "<<x<<", "<<y<<endl;
-  do 
-    {
-      if ((x>=(subpops[e][i][0]-SubPopSize/2)) &
-	  (x<(subpops[e][i][0]+SubPopSize/2)) &
-	  (y>=(subpops[e][i][1]-SubPopSize/2)) &
-	  (y<(subpops[e][i][1]+SubPopSize/2)))
-	{
-	  found=1;
-	  subpop=i;
-	  cerr << "found it! subpop "<<subpop<<endl;
-	}
-      i++;
-      if (i >= subpops[e].size())      
-	cerr <<"i "<<i<<", subpop list length "<<subpops[e].size()<<endl;
 
-    } while (!found);
-    return subpop;
-}
-*/
-
-/**
+ /***
 
     This would be the method to override if you were to add a feedback
     between genotype and offspring production/dispersal
@@ -1578,27 +1593,38 @@ int  Landscape_space::getsubpopulation(double x, double y)
 
     There are some verbose notes below on how to convert for selection.
 
- */
+***/
+
+
+
+/**
+variables that should be private for 'k'-level multithreading
+k, j, i, l, lsz, kAdj, indKadj, Radj,noff, 
+MalePopIds, tmpmales, valid_males, males, q, 
+noff, searchI, nmix, indx, Rval, mate, tmpx, tmpy, tmpI, err
+ **/
 void Landscape_space::Reproduce()
 {
   PackedIndividual_space tmpI, mate, searchI;
   vector < double > pvec;
-  vector < PackedIndividual_space > males ;
-  vector< PackedIndividual_space > tmpmales;
-
+  vector< PackedIndividual_space > tmpmales, valid_males, males;
+  vector<int> MalePopIds;
   //  vector < PackedIndividual_space >::iterator ti ;
-  double tmpx, tmpy;
+  double tmpx, tmpy, radius;
+  double kAdj, indKadj, Radj;
+  double Rval, nmix ;
   int err, indx;
   int q,noff ;
   int bsecls ;
   size_t j, i, k, l, sz, lsz ;
   sz = nhab * s;
+  //  int rows=getrows();
+  //  int cols=getcols();
   
   for (k=0;k<sz;k++)
     {
-            
-      //cerr <<"checkpoint in reproduce"<<endl;
-      if (R[e].AnyFrom(k)) ///find out if offspring can be produced by this class
+      //      cerr <<"checkpoint in reproduce" <<" stage: "<<k<<endl;
+      if (R[e].AnyFrom(k) & (I[k].size()>0)) ///find out if offspring can be produced by this class
 	{
 	  //	  R[e].SetFromState(k); //now using R[e].GetElement()
 	  tmpmales.clear();
@@ -1606,15 +1632,32 @@ void Landscape_space::Reproduce()
 	  //	  M[e].SetToState(k); //now using M[e].GetElement()
   ///get the individuals in all classes that can contribute male gametes 
   ///and put them in a single vector
-  
+  ///limit the cells to those within 'cells' distance from the central cell
+  ///assume the radius is three times the individual cell width
+
+	  //	  cerr << "focal pop: "<< habfromstage(k)  << endl;
+	  radius = (poprightx[e][habfromstage(k)]-popleftx[e][habfromstage(k)])*1.5 ;
+	    
+	  MalePopIds = getSurroundingPops(k,radius);
+	  
+	  //	  cerr << "ran getSurroundingPops, id'ed "<<MalePopIds.size() << " male source pops"<< endl;
+	    /*
 	  for (i=0;i<sz;i++)
-	    { 
-	      //	      M[e].SetFromState(i);
-	      //	      if (M[e].Value()>0)
+	    if (std::find(MalePopIds.begin(), MalePopIds.end(), habfromstage(i))!=MalePopIds.end())
+	      {
+		cerr << "stage " << i <<" pop "<<habfromstage(i) << " can donate" << endl; 
+	      }
+	    */
+	  for (i=0;i<sz;i++)
+	    {
 	      if (M[e].GetElement(i,k)>0)
 		{
-		  tmpmales = I[i].ReturnAsVector();
-		  valid_males.insert(valid_males.end(),tmpmales.begin(),tmpmales.end()); //Trying to add all the males to a single vector here....
+		  if (std::find(MalePopIds.begin(), MalePopIds.end(), habfromstage(i))!=MalePopIds.end())
+		  {
+		   tmpmales = I[i].ReturnAsVector();
+		   //Trying to add all the males to a single vector here....
+		   valid_males.insert(valid_males.end(),tmpmales.begin(),tmpmales.end()); 
+		  }
 		}
 	    }
 	  //randomize the males so that we can just truck through them and pick the first one
@@ -1622,14 +1665,10 @@ void Landscape_space::Reproduce()
 	  //randomly choose a distance from the correct distribution
 	  std::random_shuffle(valid_males.begin(),valid_males.end()); 
 	  
-	  // cerr <<"valid_males.size() "<<valid_males.size()<<endl;
-	  
-	  //	  I[k].CompressClass(0.5);///save space (may help speed )
 	  I[k].ResetIndividuals();///set an internal pointer to I[k] first ind in list
-	  
 	  lsz=I[k].size();
 	  	      
-	  double kAdj = (kvec[e][k/s]-static_cast<double>(lsz))/kvec[e][k/s];//strength of density dependence on class
+	  kAdj = (kvec[e][habfromstage(k)]-static_cast<double>(lsz))/kvec[e][habfromstage(k)];//strength of density dependence on class
 	  if (kAdj<0) {kAdj=0;}
 
 	  for (l=0;l<lsz;l++)
@@ -1644,8 +1683,7 @@ void Landscape_space::Reproduce()
 	      ///decides where pollen comes from
 	      //males will need to be private  
 	      males.clear();
-	      males = CalculateMaleGameteClassVectorApproxDist(searchI); //this is the approximate solution (dist method)
-
+	      males = CalculateMaleGameteClassVectorApproxDist(searchI, valid_males); //this is the approximate solution (dist method)
 
 /**
 
@@ -1660,17 +1698,17 @@ appropriate column of the M[e] matrix.
 */
 	      for (j=0;j<sz;j++)
 		{
-		  R[e].SetToState(j);
+		  Rval =  R[e].GetElement(k,j);  //R[e].SetToState(j);
 		  ///pick a number of offspring from a 
 		  ///Poisson dist with mean=R[tostate,fromstate]
 
-		  if (males.size()==0)
+		  if ((males.size()==0)|(Rval<=0.0))
 		    {
 		      noff=0;
 		    }
 		  else
 		    {
-		      noff = R[e].PoissonOffspring();
+		      noff = RandLibObj.poisson(Rval);
 		    }
 		  if (noff>0)
 		    {
@@ -1696,8 +1734,8 @@ appropriate column of the M[e] matrix.
 			}
 		      //cerr<<"abou to generate offspring j " << j <<endl;;
 		      //can impose fitness cost/benefit on mother at this point:
-		      double Radj = getAdjDemo(6,searchI);
-		      double indKadj=kAdj+getAdjDemoDens(searchI); //strength of dens dependence on this ind
+		      Radj = getAdjDemo(6,searchI);
+		      indKadj=kAdj+getAdjDemoDens(searchI); //strength of dens dependence on this ind
 		      if (indKadj>1) {indKadj = 1;}
 		      //		      cerr << "Radj "<<Radj<<" indKadj "<<indKadj << " noff before" << noff ;
 		      noff = floor(noff*Radj*indKadj);
@@ -1717,18 +1755,14 @@ appropriate column of the M[e] matrix.
 			    {
 			      ///these multipliers change the dispersal parameters for searchI
 			      ///they are determined by phenotypes through gpdemo matrices
-			      double dmult1=getAdjDemo(0,searchI); //shortscale
-			      double dmult2=getAdjDemo(1,searchI); //longscale
-			      double dmult3=getAdjDemo(2,searchI); //longshape
-			      double dmult4=getAdjDemo(3,searchI); //mix
-			      double nmix = dmult4*seed_mix;
+			      nmix = getAdjDemo(3,searchI)*seed_mix;
 			      if (nmix>1){nmix=1;}
 			      
 			      RandLibObj.rmixed_xy(searchI.GetX(),searchI.GetY(),
-						   seed_mu*dmult1,
-						   seed_mu2*dmult2,
-						   seed_shape2*dmult3,
-						   nmix,
+						   seed_mu * getAdjDemo(0,searchI), //dmult1,//shortscale
+						   seed_mu2 * getAdjDemo(1,searchI),// dmult2,//longscale
+						   seed_shape2 * getAdjDemo(2,searchI), //longshape
+						   nmix, //mix
 						   asp,
 						   tmpx,tmpy);
 			      //cerr<<"determined phenotype mult "<<mult1<<" mult2 "<<mult2<<endl;
