@@ -15,6 +15,7 @@ This file is part of Metasim
 
 #include <metasim.h>
 #include <PackedIndividual_space.h>
+#include "RandLib.h"
 
 using namespace std;
 
@@ -31,11 +32,13 @@ class DemoClass_space {
   ///an iterator that points to the next individual to pull from the data structure
   map<int, PackedIndividual_space, less<int> >::iterator nextind ; 
 
-int indcnt ;
+  int indcnt ;
 
   ///a stack containing indices that have been allocated, but have then been deleted
   vector <int> UNUSED;
 
+  RandLib RandLibObj;
+  
 public:
   DemoClass_space ();
   ~DemoClass_space ();

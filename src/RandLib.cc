@@ -339,10 +339,10 @@ void RandLib::SetSeed(long int sd)
 
 /**
 Declaration  of a global RandLib 'RandLibObj';
- */
+
 
 RandLib RandLibObj;
-
+ */
 
 /*
 ;;; Local Variables: ***

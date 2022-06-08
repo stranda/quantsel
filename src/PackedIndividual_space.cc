@@ -183,9 +183,11 @@ void PackedIndividual_space::SetRandGenotype(AlleleLookTbl &Atbls)
     {
       for (j=0;j<PL[i];j++)
 	{
+	  cerr <<"i, j "<< i <<", "<< j <<endl;
 	  G[ ((i * MAXPLOIDY) + j) ]   =  Atbls[i]->getRandAlleleIndex();
 	}
     }
+  cerr<<"finished SetRandGenotype"<<endl;
 }
 
 

@@ -21,7 +21,7 @@ protected:
   ///transmission of alleles:  0=biparental, 1=maternal, 2=paternal
   int trans;
   std::vector<int> UNUSED;
-
+  RandLib RandLibObj;
 
 public:
 

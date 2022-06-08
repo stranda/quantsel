@@ -38,7 +38,7 @@ protected:
   int birth;
   int freq;
   double prop;
-
+  RandLib RandLibObj;
 public:
 
   Allele (double p=0, int s=0, int b=0, int d=0);

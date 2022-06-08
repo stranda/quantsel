@@ -112,7 +112,7 @@ public:
 }; // end RandLib
 
 
-extern RandLib RandLibObj;
+//extern RandLib RandLibObj;
 
 #endif /*RANDLIB*/
 

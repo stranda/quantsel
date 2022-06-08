@@ -36,6 +36,7 @@ private:
   int f;
   int t;
   std::vector< std::vector<float> > tm;
+  RandLib RandLibObj;
 
 public:
   TransMat ( size_t s=1 ) ;

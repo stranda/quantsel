@@ -28,6 +28,7 @@ includes
 #include <FastAllele.h>
 //#include <FastSeqAllele.h>
 #include <AlleleTbl.h>
+#include <RandLib.h>
 
 using namespace std;
 
@@ -64,7 +65,8 @@ protected:
   short PL[MAXLOCI];
   ///linearized matrix of diploid genotypes of the ind.
   short G[MAXLOCI * MAXPLOIDY];
-
+  RandLib RandLibObj;
+  
 public:
   PackedIndividual_space(int c=0, int g=0, int nl=0);
   ~PackedIndividual_space();

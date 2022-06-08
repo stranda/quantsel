@@ -572,7 +572,7 @@ void Landscape_space::RandomlyChooseEpoch()
 	{
 	  p[i]=epochprobs[i];
 	}
-      e = RandLibObj.multinomial(p,nep);
+      e = InternRand.multinomial(p,nep);
     }
    delete [] p;
 }
@@ -621,7 +621,7 @@ void Landscape_space::RandomlyConstructDemoMatrix()
   
   for (i=0;i<nhab;i++)
     {
-      rm = RandLibObj.multinomial(p,ndemo);
+      rm = InternRand.multinomial(p,ndemo);
       for (fr=0;fr<s;fr++)
 	{
 	  for (to=0;to<s;to++)
@@ -661,17 +661,18 @@ void Landscape_space::popsizeset(std::vector<int> &ps)
 	{
 	  Ind.SetClass(i);
 	  Ind.SetLoci(Atbls);
+	  cerr<<"about to setrandgenotypes"<<endl;
 	  Ind.SetRandGenotype(Atbls);
 	  Ind.Change(-1);
 	  Ind.SetLastRep(-1);
 	  Ind.SetNumOff(0);
 	  Ind.Birth(-1,Atbls);
 
-	  Ind.SetX(RandLibObj.uniminmax(int(popleftx[e][Habitat(i)]),int(poprightx[e][Habitat(i)])));
-	  Ind.SetY(RandLibObj.uniminmax(int(popboty[e][Habitat(i)]),int(poptopy[e][Habitat(i)])));
-	  //	  cerr<<"about to set subpop for indi in class "<< i <<endl;
+	  Ind.SetX(InternRand.uniminmax(int(popleftx[e][Habitat(i)]),int(poprightx[e][Habitat(i)])));
+	  Ind.SetY(InternRand.uniminmax(int(popboty[e][Habitat(i)]),int(poptopy[e][Habitat(i)])));
+	  //cerr<<"about to set subpop for indi in class "<< i <<endl;
 	  //	  Ind.SetSub(getsubpopulation(Ind.GetX(),Ind.GetY()));
-	  //	  cerr<<"just set subpop"<<endl;
+	  //cerr<<"just set subpop"<<endl;
 	  Ind.SetMX(0);
 	  Ind.SetMY(0);
 	  Ind.SetFX(0);
@@ -852,6 +853,7 @@ void Landscape_space::Survive()
   PackedIndividual_space ind,tmpind;
   vector < int > deadindices, changeindices;
   vector < int >::iterator inditer;
+  RandLib RandLibObj;
   int indx;
   int rs;
   size_t i, j, isz, sz;
@@ -946,17 +948,17 @@ vector< PackedIndividual_space >  Landscape_space::CalculateMaleGameteClassVecto
 
   vector< PackedIndividual_space > males;
   vector< PackedIndividual_space > lmales;
-
+  RandLib RandLibObj;
   double dist, tot, pkd;
-
+  int tostate = pi.GetClass();
+  
   sz=0;
-  M[e].SetToState(pi.GetClass());
+  
   ///get the total number of individuals in classes that can contribute male gametes
   
   for (i=0;i<dclass;i++)
     { 
-      M[e].SetFromState(i);
-      if (M[e].Value()>0)
+      if (M[e].GetElement(i,tostate)>0)
 	{
 	  sz += I[i].size();
 	}
@@ -975,324 +977,55 @@ vector< PackedIndividual_space >  Landscape_space::CalculateMaleGameteClassVecto
 
   for (i=0;i<dclass;i++)
     { 
-      M[e].SetFromState(i);
-      if (M[e].Value()>0)
+      if (M[e].GetElement(i,tostate)>0)
 	{
 	  males=I[i].ReturnAsVector();
 	  for (j=0;j<males.size();j++)
 	    {
-	      //	      if (Habitat(i)==Habitat(pi.GetClass())) ///male is in same habitat as female, base prob on distance
-	      //		{
-		  dist = pow(pow((pi.GetX()-(males[j]).GetX()),2)+pow((pi.GetY()-(males[j]).GetY()),2),0.5);
-		  if (dist>0 && dist<6000) ///hmmm why 6000?
-		    {
-		      pkd = pollenKernelDensity(dist,i);
-		    } 
-		  else 
-		    {
-		      pkd=0.0;
-		    }
-		  if (pkd<mindens)  pkd=0.0;
-		  p[sz]=M[e].Value() * pkd;
-		  //		}
-		  //	      else
-		  //		{
-		  //		  p[sz]= M[e].Value() ;
-		  //		}
-
-		  //cerr <<"j: "<<j<<"p[sz] "<<p[sz]<<" males[j] "<<males[j];
-	      tot = tot + p[sz];
-
-	      sz++;
-
-	    }
-	  //	  cerr << endl;
-	  for (size_t r1=0; r1 < males.size(); r1++)
-	    {
-	      lmales.push_back(males[r1]);
-	    }
-	}
-    }
-  //  cerr<<"this is tot "<<tot <<endl<<"This is sz "<<sz<<endl;
-  if (tot>0)
-    {
-      for (i=0;i<sz;i++)
-	{
-	  //      cerr << "i: " <<i<< "p[i] before scale " << p[i] << endl;
-	  //       cerr << p[i] << " ";
-	  p[i] = double (double(p[i]) / double(tot) );
-	  //      cerr << "i: " <<i<< "p[i] after scale " << p[i] << endl;
-	  
-	}
-      //  cerr<<endl;
-
-      RandLibObj.SetDiscreteLookup(p,sz);
-    }
-  else
-    {
-      //      p[1]=1;   ///changed because we keep running off the end of the vector
-      p[0]=1; 
-      RandLibObj.SetDiscreteLookup(p,1);
-      lmales.resize(0);
-    }
-
-  //  cerr << "number of males returned from gamete vector routine "<<lmales.size()<<endl;
-  delete [] p;
-  return lmales;
-}
-
-
-/** 
-
-
-This method returns a vector of males and initializes a vector of probs of choosing each male as a father.
-takes into account the stored vector of available males
-
-vector< PackedIndividual_space >  Landscape_space::CalculateMaleGameteClassVectorNew(PackedIndividual_space pi)
-{
-  int i,sz;
-  size_t j;
-  int dclass = nhab * s;
-
-  vector< PackedIndividual_space > males;
-  vector< PackedIndividual_space > lmales;
-
-  double dist, tot, pkd;
-
-  sz=0;
-  M[e].SetToState(pi.GetClass());
-  ///get the total number of individuals in classes that can contribute male gametes
-  
-  for (i=0;i<dclass;i++)
-    { 
-      M[e].SetFromState(i);
-      if (M[e].Value()>0)
-	{
-	  sz += I[i].size();
-	}
-    }
-
-  //  cerr<<"This is sz and length of p:"<<sz<<endl;
-
-  double *p = new double[sz];
-
-  males.reserve(sz);
-  lmales.reserve(sz);
-  sz=0;
-  tot=0;
-  
-  ///cout << ".";
-
-  for (i=0;i<dclass;i++)
-    { 
-      M[e].SetFromState(i);
-      if (M[e].Value()>0)
-	{
-	  males=I[i].ReturnAsVector();
-	  for (j=0;j<males.size();j++)
-	    {
-	      //	      if (Habitat(i)==Habitat(pi.GetClass())) ///male is in same habitat as female, base prob on distance
-	      //		{
-		  dist = pow(pow((pi.GetX()-(males[j]).GetX()),2)+pow((pi.GetY()-(males[j]).GetY()),2),0.5);
-		  if (dist>0 && dist<6000) ///hmmm why 6000?
-		    {
-		      pkd = pollenKernelDensity(dist,i);
-		    } 
-		  else 
-		    {
-		      pkd=0.0;
-		    }
-		  if (pkd<mindens)  pkd=0.0;
-		  p[sz]=M[e].Value() * pkd;
-		  //		}
-		  //	      else
-		  //		{
-		  //		  p[sz]= M[e].Value() ;
-		  //		}
-
-		  //cerr <<"j: "<<j<<"p[sz] "<<p[sz]<<" males[j] "<<males[j];
-	      tot = tot + p[sz];
-
-	      sz++;
-
-	    }
-	  //	  cerr << endl;
-	  for (size_t r1=0; r1 < males.size(); r1++)
-	    {
-	      lmales.push_back(males[r1]);
-	    }
-	}
-    }
-  //  cerr<<"this is tot "<<tot <<endl<<"This is sz "<<sz<<endl;
-  if (tot>0)
-    {
-      for (i=0;i<sz;i++)
-	{
-	  //      cerr << "i: " <<i<< "p[i] before scale " << p[i] << endl;
-	  //       cerr << p[i] << " ";
-	  p[i] = double (double(p[i]) / double(tot) );
-	  //      cerr << "i: " <<i<< "p[i] after scale " << p[i] << endl;
-	  
-	}
-      //  cerr<<endl;
-
-      RandLibObj.SetDiscreteLookup(p,sz);
-    }
-  else
-    {
-      //      p[1]=1;   ///changed because we keep running off the end of the vector
-      p[0]=1; 
-      RandLibObj.SetDiscreteLookup(p,1);
-      lmales.resize(0);
-    }
-
-  //  cerr << "number of males returned from gamete vector routine "<<lmales.size()<<endl;
-  delete [] p;
-  return lmales;
-}
-*/
-
-/** 
-
-
-This method returns a vector of males and initializes a vector of probs of choosing each male as a father.
-This method make an approximation based on pulling a single distance from a pollen kernel, then 
-finding the individuals within a distance band.  This should be faster than the more exact solution because 
-there is only a single random variate pulled and squaring is faster than pow()
-
-*/
-vector< PackedIndividual_space >  Landscape_space::CalculateMaleGameteClassVectorApproxBand(PackedIndividual_space pi, vector< PackedIndividual_space > valid_males)
-{
-  int i,sz;
-
-  int found = 0;
-  int selfed;
-  double uni;
-  double mx = pi.GetX(); //coordinates of momma
-  double my = pi.GetY();
-
-/*
-these two parameters determine the width of the band centered on the random distance from the female.
-ddelta is the amount that the band increases in size during each search iteration
-*/
-
-  double delta = 10;  //this parameter needs to be tuned for sure.
-  double ddelta = 0.1; //same with this parameter
- 
-  double inradsq, outradsq; //will hold the square of the inner and outer radius of the band
-  double fxsq, fysq;  //These will contain the square of the difference between each father (in turn) and mom
-
-  vector< PackedIndividual_space > lmales;
-
-  double dist;
-
-  sz = valid_males.size();
-  dist = RandpollenKernelDensity();
-  uni = RandLibObj.uniform();
-  selfed = (uni<self);
-  //  cerr << "selfed " << selfed <<endl;
-  //the following loop continues to increase the size of the band until a father is located.
-  i=0;
-  if ((dist-(0))<=0)
-    {
-      if (selfed)
-	{
-	  inradsq  = 0;
-	} else 
-	{
-	  inradsq  = 0.001;
-	}
-    } else {
-      inradsq = pow((dist-(delta/2)),2);
-    }
-  outradsq = pow((dist+(delta/2)),2);
-  
-  do
-    {
-      if (i==(sz)) //reached the end of the list of males, now try a wider band
-	{
-	  delta = (1+ddelta) * delta;
-	  dist = (1+ddelta*2) * dist;
-	  if ((dist-(delta/2))<0)
-	    {
-	      if (selfed)
+	      dist = pow(pow((pi.GetX()-(males[j]).GetX()),2)+pow((pi.GetY()-(males[j]).GetY()),2),0.5);
+	      if (dist>0 && dist<6000) ///hmmm why 6000?
 		{
-		  inradsq  = 0;
-		} else 
-		{
-		  inradsq  = 0.001;
+		  pkd = pollenKernelDensity(dist,i);
 		} 
-	    } else 
-	    {
-	      inradsq = pow((dist-(delta/2)),2);
+	      else 
+		{
+		  pkd=0.0;
+		}
+	      if (pkd<mindens)  pkd=0.0;
+	      p[sz]=M[e].Value() * pkd;
+	      
+	      tot = tot + p[sz];
+	      sz++;
 	    }
-	  outradsq = pow((dist+(delta/2)),2);
-	  i=0;
+	  for (size_t r1=0; r1 < males.size(); r1++)
+	    {
+	      lmales.push_back(males[r1]);
+	    }
 	}
-      fxsq = pow((mx - valid_males[i].GetX()),2);
-      fysq = pow((my - valid_males[i].GetY()),2);
-      
-      //      cerr <<fxsq << fysq << inradsq << outradsq <<endl;
-      //      cerr << "made it this far, sz = "<<sz<<endl;
-      if (((fxsq+fysq)<=outradsq) & ((fxsq+fysq)>=inradsq))
+    }
+  
+  if (tot>0)
+    {
+      for (i=0;i<sz;i++)
 	{
-	  found = 1;
-	  lmales.push_back(valid_males[i]);
-	  double p[1];  //next two lines quick hack to use setdiscretelookup
-	  p[0] = 1.0;
-	  RandLibObj.SetDiscreteLookup(p,1);
+	  p[i] = double (double(p[i]) / double(tot) );
 	}
-      i++;
-    } while (!found);
-  //  cerr << "found a father"<<endl;
+
+      RandLibObj.SetDiscreteLookup(p,sz);
+    }
+  else
+    {
+      //      p[1]=1;   ///changed because we keep running off the end of the vector
+      p[0]=1; 
+      RandLibObj.SetDiscreteLookup(p,1);
+      lmales.resize(0);
+    }
+
+  //  cerr << "number of males returned from gamete vector routine "<<lmales.size()<<endl;
+  delete [] p;
   return lmales;
 }
 
-
-/*
-this function is supposed to take a vector of individuals and return a unique
-set that has their subpop ids
- */
-/*
-std::vector<int> Landscape_space::uniquesubpops(vector < PackedIndividual_space > inds)
-{
-  std::vector < int > sp;
-  std::vector< PackedIndividual_space >::iterator it;
-  for (it=inds.begin(); it!=inds.end(); ++it)
-    sp.push_back((*it).GetSub());
-  sort(sp.begin(),sp.end());
-  sp.erase(unique(sp.begin(),sp.end()),sp.end());
-  return sp;
-}
-*/
-
-/*
-This function takes a subpopulation id and a vector of individuals and returns a random individual that
-is located in the subpopulation
-
-ASSUMES THAT THERE IS AT LEAST ONE INDIVIDUAL IN THE LIST FROM THE SUBPOPULATION!!!!
-
-
- */
-/*
-PackedIndividual_space Landscape_space::indsfromsubpop(int sp, vector <PackedIndividual_space> inds)
-{
-  int found = 0;
-  PackedIndividual_space  spInd;
-  std::vector< PackedIndividual_space >::iterator it;
-  it=inds.begin();
-  do 
-    {
-    if ((*it).GetSub()==sp)
-      {
-	spInd =  *it ;
-	found = 1;
-      }
-    ++it;
-    } while (!found);
-  return spInd;
-}
-*/
 
 
 /** 
@@ -1313,11 +1046,13 @@ vector< PackedIndividual_space >  Landscape_space::CalculateMaleGameteClassVecto
   double mx = pi.GetX(); //coordinates of momma
   double my = pi.GetY();
   double asqr, bsqr;
+  double dist, diff, mindiff;
 
+  RandLib RandLibObj;
   vector< PackedIndividual_space > lmales;
   lmales.reserve(1);
 
-  double dist, diff, mindiff;
+  
 
   sz = valid_males.size();
 
@@ -1325,8 +1060,11 @@ vector< PackedIndividual_space >  Landscape_space::CalculateMaleGameteClassVecto
   dist = pow(RandpollenKernelDensity(),2); //this is the squared distance (Saves calcs in loop)
   
   found=0;
+  i=0;
   mindiff = 1000000000;
-  for (i=0;i<sz;i++)
+  
+  //  for (i=0;i<sz;i++)
+  while ((i<sz)&(!found))
     {
       asqr = pow(mx-valid_males[i].GetX(),2);
       bsqr = pow(my-valid_males[i].GetY(),2);
@@ -1348,11 +1086,9 @@ vector< PackedIndividual_space >  Landscape_space::CalculateMaleGameteClassVecto
 	      found = i;
 	    }
 	}
-
-      //      cerr << "dist "<<dist<<" asqr "<<asqr<<" bsqr "<<bsqr<<" diff "<<diff<<" mindiff " <<mindiff<<endl;
-      //      cerr << "found "<<found<<endl;
+      i++;
     }
-  //  cerr << "found = "<<found<<endl;
+
   lmales.push_back(valid_males[found]);
   double p[1];  //next two lines quick hack to use setdiscretelookup
   p[0] = 1.0;
@@ -1428,7 +1164,7 @@ std::vector< double > Landscape_space::IndividualPhenotype(PackedIndividual_spac
 		}
 	    }
 	  ///plasticity is a number multiplied by the phenotype value.  There is then noise added depending on hsq
-	  double rv = (ac + RandLibObj.normal(0, (ac * (1-hsq[p])))) * getplasticity(ind.GetClass()/getstages(),p) ;
+	  double rv = (ac + InternRand.normal(0, (ac * (1-hsq[p])))) * getplasticity(ind.GetClass()/getstages(),p) ;
 	  if (rv>1) rv=1.0;
 	  if (rv<0) rv=0.0;
 	  rvec[p] = rv;
@@ -1482,38 +1218,6 @@ std::vector< double > Landscape_space::Phenotypes()
     }
   return retvec;
 }
-
-
-
-
-
-PackedIndividual_space Landscape_space::FindMate(PackedIndividual_space pi)
-{
-  PackedIndividual_space tmpI;
-
-  int mc;
-
-  mc = RandLibObj.PickMultinomial();
-  tmpI.SetClass(-1);
-
-  tmpI = I[mc].GetRandomInd();
-
-  return tmpI;
-}
-
-void Landscape_space::testfindmate(PackedIndividual_space pi)
-{
-  PackedIndividual_space mate;
-  size_t i;
-  cerr << "target ind: " <<pi<<endl;
-  for (i=1;i<100;i++)
-    {
-      mate = FindMate(pi);
-
-      cerr <<"potential mate # "<<i<<" :  "<< mate<<endl;
-    }
-}
-
 
 /// assuming that populations are arranged in some sort of grid arrangement
 /// find the population ids that surround a particular habitat/population
@@ -1609,6 +1313,7 @@ void Landscape_space::Reproduce()
   vector < double > pvec;
   vector< PackedIndividual_space > tmpmales, valid_males, males;
   vector<int> MalePopIds;
+  RandLib RandLibObj;
   //  vector < PackedIndividual_space >::iterator ti ;
   double tmpx, tmpy, radius;
   double kAdj, indKadj, Radj;
@@ -2022,7 +1727,7 @@ void Landscape_space::Extirpate()
   etrue=0;
   for (h=0;h<nhab;h++)
     {
-      rn = RandLibObj.uniform();
+      rn = InternRand.uniform();
       if (evec[e][h]>rn)
 	{
 	  p[h]=1;
@@ -2634,11 +2339,11 @@ void Landscape_space::new_propagule_xy(double ix, double iy, int cls, double asp
   switch (int(SK[e][cls][0]))
     {
     case 1: //exponential (weibull with shape set at 1)
-      RandLibObj.rweibull_xy(ix,iy,SK[e][cls][1],1,aspect,x,y);
+      InternRand.rweibull_xy(ix,iy,SK[e][cls][1],1,aspect,x,y);
       //      cerr <<"exp"<<endl;
       break;
     case 2: //weibull
-      RandLibObj.rweibull_xy(ix,iy,SK[e][cls][1],SK[e][cls][2],aspect,x,y);
+      InternRand.rweibull_xy(ix,iy,SK[e][cls][1],SK[e][cls][2],aspect,x,y);
       //      cerr <<"weib"<<endl;
       break;
       ///    case 3: //Clarks formulation of geometric
@@ -2648,7 +2353,7 @@ void Landscape_space::new_propagule_xy(double ix, double iy, int cls, double asp
     case 3: //mixture distribution
       //      cerr <<"mixed"<<endl;
       //      cerr << "seedkernel params, class: "<<cls<<" kernel row: "<<SK[e][cls][0]<<", "<<SK[e][cls][1]<<", "<<SK[e][cls][2]<<", "<<SK[e][cls][3]<<", "<<SK[e][cls][4]<<", "<<SK[e][cls][5]<<endl;
-      RandLibObj.rassym_mixed_xy(ix,iy,
+      InternRand.rassym_mixed_xy(ix,iy,
 				 SK[e][cls][1],SK[e][cls][3],
 				 SK[e][cls][1],SK[e][cls][3],
 				 SK[e][cls][2],SK[e][cls][4],
@@ -2657,48 +2362,6 @@ void Landscape_space::new_propagule_xy(double ix, double iy, int cls, double asp
     }
 }
 
-int Landscape_space::male_gamete_source_habitat(double ix, double iy,  double aspect, int numtries)
-{
-  ///note that the compared to new_propagule_xy, there is no 'cls' parameter
-  ///This function assumes that the first row in the PK matrix works for all rows.  This is equivalent of assuming a
-  ///single pollen kernel for all males in the landscape
-
-  int cls=0; ///if ever changing to a variable pollen density, this will need to be variable
-  int pop;
-  double x,y;
-  do
-    {
-      switch (int(PK[e][cls][0]))
-	{
-	case 1: //exponential (weibull with shape set at 1)
-	  RandLibObj.rweibull_xy(ix,iy,PK[e][cls][1],1,aspect,x,y);
-	  //      cerr <<"exp"<<endl;
-	  break;
-	case 2: //weibull
-	  RandLibObj.rweibull_xy(ix,iy,PK[e][cls][1],PK[e][cls][2],aspect,x,y);
-	  //      cerr <<"weib"<<endl;
-	  break;
-	  ///    case 3: //Clarks formulation of geometric
-	  ///      RandLibObj.rgeom_xy(ix,iy,PK[e][cls][1],PK[e][cls][2],aspect,x,y);
-	  ///      cerr <<"geom"<<endl;
-	  ///      break;
-	case 3: //mixture distribution
-	  //      cerr <<"mixed"<<endl;
-	  //      cerr << "seedkernel params, class: "<<cls<<" kernel row: "<<PK[e][cls][0]<<", "<<PK[e][cls][1]<<", "<<PK[e][cls][2]<<", "<<PK[e][cls][3]<<", "<<PK[e][cls][4]<<", "<<PK[e][cls][5]<<endl;
-	  RandLibObj.rassym_mixed_xy(ix,iy,
-				     PK[e][cls][1],PK[e][cls][3],
-				     PK[e][cls][1],PK[e][cls][3],
-				     PK[e][cls][2],PK[e][cls][4],
-				     PK[e][cls][2],PK[e][cls][4],
-				     PK[e][cls][5],PK[e][cls][5],aspect,x,y);
-	}    
-      ///test if there is habitat at x and y.  If there is, check if there are males in that habitat
-      ///if there is not, then pull another male gamete (pollen grain)
-      pop=getpopulation(x,y);
-    }
-  while (pop<0);
-  return(pop);
-}
 
 double Landscape_space::pollenKernelDensity(double dist, int i)
 {
@@ -2707,16 +2370,16 @@ double Landscape_space::pollenKernelDensity(double dist, int i)
   switch (int(PK[e][i][0]))
     {
     case 1: //exponential (weibull with shape set at 1)
-      res = RandLibObj.weibull(dist,PK[e][i][1],1);
+      res = InternRand.weibull(dist,PK[e][i][1],1);
       break;
     case 2: //weibull
-      res =RandLibObj.weibull(dist,PK[e][i][1],PK[e][i][2]);
+      res = InternRand.weibull(dist,PK[e][i][1],PK[e][i][2]);
       break;
       ///   case 3: //Clarks formulation of geometric
       ///      res = RandLibObj.geom(dist,PK[e][i][1],PK[e][i][2]);
       ///      break;
     case 3: //mixture distribution
-      res = RandLibObj.mixed(dist,PK[e][i][1],PK[e][i][3],PK[e][i][2],PK[e][i][4],PK[e][i][5]);
+      res = InternRand.mixed(dist,PK[e][i][1],PK[e][i][3],PK[e][i][2],PK[e][i][4],PK[e][i][5]);
     }  
   //    cerr <<"res = "<<res<<endl;
   return res;
@@ -2726,6 +2389,7 @@ double Landscape_space::RandpollenKernelDensity()
 {
   double res=0;
   int i=0;
+  RandLib RandLibObj;
   //   cerr << "pollenkernel params, class: "<<i<<" dist "<<dist<<" kernel row: "<<PK[e][i][0]<<", "<<PK[e][i][1]<<", "<<PK[e][i][2]<<", "<<PK[e][i][3]<<", "<<PK[e][i][4]<<", "<<PK[e][i][5]<<endl;
   switch (int(PK[e][i][0]))
     {
@@ -2733,7 +2397,7 @@ double Landscape_space::RandpollenKernelDensity()
       res = RandLibObj.rndweibull(PK[e][i][1],1);
       break;
     case 2: //weibull
-      res =RandLibObj.rndweibull(PK[e][i][1],PK[e][i][2]);
+      res = RandLibObj.rndweibull(PK[e][i][1],PK[e][i][2]);
       break;
       ///   case 3: //Clarks formulation of geometric
       ///      res = RandLibObj.geom(dist,PK[e][i][1],PK[e][i][2]);
@@ -2741,7 +2405,7 @@ double Landscape_space::RandpollenKernelDensity()
     case 3: //mixture distribution
       res = RandLibObj.rndmixed(PK[e][i][1],PK[e][i][3],PK[e][i][2],PK[e][i][4],PK[e][i][5]);
     }  
-  //    cerr <<"res = "<<res<<endl;
+
   return res;
 }
 

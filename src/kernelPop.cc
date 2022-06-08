@@ -10,7 +10,7 @@ Allan Strand 9/17/01
 #include <kernelPop.h>
 #include <vector>
 
-extern "C" {
+//extern "C" {
 
   /* get the list element named str, or return NULL */
   /*This code comes from the R-exts documentation */
@@ -1414,7 +1414,7 @@ vector<int> sexp_int_to_vector(SEXP thelist)
   return retval;    
 }
 
-SEXP clean_landscape(SEXP Rland)
+extern "C" SEXP clean_landscape(SEXP Rland)
   {
     Landscape_space_statistics L;
     convert_R_to_metasim(Rland,L);  
@@ -1452,7 +1452,7 @@ SEXP populate_Rland(SEXP Rland, SEXP Population_sizes)
 	R_to_metasim_phenohab(getListElement(Rland,PHENOHABPARAMS),L);
       }
     ps = sexp_int_to_vector(Population_sizes);
-    //    Rprintf("set everything up to popsizeset \n");
+        Rprintf("set everything up to popsizeset \n");
     L.popsizeset(ps);
     //    Rprintf("about to return but must run convert_metasim_to_R \n");
     return convert_metasim_to_R(L);
@@ -1525,7 +1525,7 @@ SEXP test()
     double x,y;
     for (i=0; i<10000;i++)
       {
-	RandLibObj.rassym_mixed_xy(1000,1000,100,200,100,200,1,50,1,50,0.5,0.5,1,x,y);
+	//	RandLibObj.rassym_mixed_xy(1000,1000,100,200,100,200,1,50,1,50,0.5,0.5,1,x,y);
 	REAL(Indmat)[i]=pow(pow(1000-x,2)+pow(1000-y,2),0.5);
       }
     UNPROTECT(1);
@@ -1533,4 +1533,4 @@ SEXP test()
   }
 
 
-} ///end of extern "C"
+//} ///end of extern "C"

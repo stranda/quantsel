@@ -366,6 +366,7 @@ protected:
 
    */  
 
+  RandLib InternRand;
 public:
 
   ///Constructor
@@ -769,33 +770,6 @@ are located in the subpopulation
 */
 vector < PackedIndividual_space > CalculateMaleGameteClassVector(PackedIndividual_space pi, vector< PackedIndividual_space > valid_males);
 
-/** 
-
-This function approximates the solution implemented in CalculateMaleGameteClassVector by 
-contructing an ever expanding 'band' around each female at a distance determined by a random
-pull from a pollen dispersal kernel.
-
-
-    ***Important: this function allocates a lookup table.  it must be
-    ***freed at some point after the function is invoked by issuing the
-    ***command: RandLibObj.FreeDiscreteLookup();
-
-*/
-vector < PackedIndividual_space > CalculateMaleGameteClassVectorApproxBand(PackedIndividual_space pi, vector< PackedIndividual_space > valid_males);
-
-/** 
-
-This function approximates the solution implemented in CalculateMaleGameteClassVector by 
-contructing an ever expanding 'band' around each female at a distance determined by a random
-pull from a pollen dispersal kernel.
-
-
-    ***Important: this function allocates a lookup table.  it must be
-    ***freed at some point after the function is invoked by issuing the
-    ***command: RandLibObj.FreeDiscreteLookup();
-
-*/
-vector < PackedIndividual_space > CalculateMaleGameteClassVectorApproxBandGrid(PackedIndividual_space pi, vector< PackedIndividual_space > valid_males);
 
 /** 
 
@@ -811,24 +785,6 @@ pull from a pollen dispersal kernel.
 */
 vector < PackedIndividual_space > CalculateMaleGameteClassVectorApproxDist(PackedIndividual_space pi, vector< PackedIndividual_space > valid_males);
 
-
-  /**
-
-     FindMate:
-
-     Find a mate from the landscape for the passed individual and return it.
-
-     The mate is identified by first multiplying the population size
-     in each class by the probability that an individual in that class
-     will become part of the pool of individuals that could
-     potentially mate with the focal individual A mate is then chosen
-     at random from the collection of potential gamete donators.
-
-   */
-
-PackedIndividual_space FindMate(PackedIndividual_space pi);
-
-void testfindmate(PackedIndividual_space pi);
 
   /**
      Reproduce:
@@ -907,11 +863,7 @@ void Advance();
   based on the internal seed kernel matrix
   */
   void new_propagule_xy(double ix, double iy, int cls, double aspect, double &x, double &y);
-  /**
-This function takes a mothers location and finds the habitat that her
-pollen cloud comes from.  Used for approximate male reproduction
-   */
-  int male_gamete_source_habitat(double ix, double iy, double aspect, int numtries=100);
+
   double pollenKernelDensity(double dist, int i);
 
   //this function returns a distance based on the pollen kernel in place

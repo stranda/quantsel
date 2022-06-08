@@ -91,8 +91,6 @@ int InfAlleleTbl::getRandAlleleIndex()
       i++;
     }
 
-//  tmpiter = A.end();
-
   do 
     { 
       tofind = lookup[RandLibObj.multinomial(p,sz)];
@@ -101,6 +99,7 @@ int InfAlleleTbl::getRandAlleleIndex()
   while(tmpiter==A.end());
   delete [] p;
   delete [] lookup;
+  cerr<<"leaving getRandAlleleIndex"<<endl;
   return (*tmpiter).first;  
 }		 
 
