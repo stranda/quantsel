@@ -5,11 +5,11 @@
  */
 
 
-extern "C" {
+//extern "C" {
 #include <R.h>
 #include <Rinternals.h>
 #include <Rdefines.h>
-}
+//}
 /**
 Defines:
 */
