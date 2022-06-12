@@ -20,7 +20,7 @@ This file is part of Metasim
 #include <PackedIndividual_space.h>
 #include <Democlass_space.h>
 #include <TransMat.h>
-#include <RandLib.h>
+#include <RandFuncs.h>
 #include <PhenoMap.h>
 #include <string>
 #include <vector>
@@ -366,7 +366,6 @@ protected:
 
    */  
 
-  RandLib InternRand;
 public:
 
   ///Constructor

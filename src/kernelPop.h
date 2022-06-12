@@ -127,6 +127,8 @@ extern "C" SEXP iterate_landscape_stg0(SEXP numit, SEXP Rland, SEXP cmpress);
  
 extern "C" SEXP populate_Rland(SEXP Rland, SEXP Population_sizes);
 
+extern "C" SEXP carry_landscape(SEXP Rland);
+
 ///utility functions
 ///convert a landscape into a format that the weir fst calculations in R can use.
 extern "C" SEXP l2w(SEXP Rland, SEXP numind);

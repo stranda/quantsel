@@ -18,7 +18,7 @@ This is the declaration of the Allele object types.
 
 #include <metasim.h>
 #include <BaseObj.h>
-#include <RandLib.h>
+#include <RandFuncs.h>
 #include <iostream>
 
 using namespace std;
@@ -38,7 +38,6 @@ protected:
   int birth;
   int freq;
   double prop;
-  RandLib RandLibObj;
 public:
 
   Allele (double p=0, int s=0, int b=0, int d=0);

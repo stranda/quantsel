@@ -163,18 +163,18 @@ void SeqAllele::mutate()
       s3 = 'A';
     }
 
-  uni = RandLibObj.uniform() ; 
+  uni = uniform() ; 
   if (uni < 0.33333)
     {
-      dnaseq[RandLibObj.unirange(SeqLen())] = s1;
+      dnaseq[unirange(SeqLen())] = s1;
     }
   else if (uni < 0.666667)
     {
-      dnaseq[RandLibObj.unirange(SeqLen())] = s2;
+      dnaseq[unirange(SeqLen())] = s2;
     }
   else 
     {
-      dnaseq[RandLibObj.unirange(SeqLen())] = s3;
+      dnaseq[unirange(SeqLen())] = s3;
     }
 }
 

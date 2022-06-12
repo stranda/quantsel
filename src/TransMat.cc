@@ -91,7 +91,6 @@ void TransMat::SetMat(TransMat a)
   /// don't have an error function here probably need to check for reasonable values.
 }
 
-//
 
 /*
 TransMat & TransMat::operator= (TransMat &T)
@@ -107,7 +106,7 @@ TransMat & TransMat::operator= (TransMat &T)
 }
 */
 
-
+/**
 ///Implementation of the random state algorithm
  ///adj is a multiplier to the entire vector.  Can be used to decrease or increase survival overall
 void TransMat::SetRandomToStateVec (double adj)
@@ -124,7 +123,7 @@ void TransMat::SetRandomToStateVec (double adj)
       assert(p[i]>=0);
     }
  
-  RandLibObj.SetDiscreteLookup(p,sz+1);
+  bObj.SetDiscreteLookup(p,sz+1);
   delete [] p;
 }
 
@@ -145,30 +144,28 @@ void TransMat::SetRandomFromStateVec ()
   RandLibObj.SetDiscreteLookup(p,sz+1);
   delete [] p;
 }
-
-size_t TransMat::RandomState()
+**/
+int TransMat::RandomState(double adj, int frm)
 {
-  SetToState(RandLibObj.PickMultinomial());
-  if (Size() == GetToState()) 
-    { 
-      SetToState(-1); 
-    }
-  return GetToState();
-}
-
-
-
-size_t TransMat::PoissonOffspring()
-{
-  float val;
-  size_t num = 0;
-  val = Value();
-  if (val>0.0)
+  
+  vector < double > p;
+  p.resize(Size()+1);
+  double s=0.0;
+  int i=0;
+  for (i=0; i<p.size()-1; i++)
     {
-      num = RandLibObj.poisson(val);
+      p[i] = GetElement(frm,i) * adj;
+      s = s+p[i];
     }
-  return num;
+
+  if (s<1.0) {p[p.size()-1]=1.0 - s;}
+  int rs = PickMultinomial(p);
+  //  cerr << "p.back() "<<p.back()<<", p.size() "<<p.size()<<", i: "<<i<<", rs "<<rs<<endl;
+  if (rs == (p.size()-1)) {rs=-1;}
+
+  return rs;
 }
+
 
 int TransMat::AnyFrom(size_t fs)
 {

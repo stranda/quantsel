@@ -4,7 +4,7 @@ Allan Strand 9/17/01
 
 #include <Landscape_space.h>
 #include <FastAllele.h>
-//#include <FastSeqAllele.h>
+#include <RandFuncs.h>
 #include <iostream>
 #include <fstream>
 #include <kernelPop.h>
@@ -1164,37 +1164,6 @@ SEXP convert_metasim_to_R(Landscape_space_statistics &L)
     return Retlist;
 }
 
-  SEXP read_landscape(SEXP fn)
-  {
-    Landscape_space_statistics L;
-    ifstream ISTRM;
-#ifdef RDEBUG
-    ofstream OSTRM;
-    OSTRM.open("rdebug.dat");
-#endif
-    ISTRM.open(CHARACTER_VALUE(fn));
-    if (!ISTRM)
-      {
-	cerr <<"fn "<<CHARACTER_VALUE(fn)<<endl;
-	error ("could not open input file name:");
-      }
-#ifdef RDEBUG
-    cerr <<"Reading landscape"<<endl;
-#endif
-
-    ISTRM >> L;
-    ISTRM.close();
-    
-#ifdef RDEBUG
-    cerr <<"Finished reading landscape"<<endl;
-    cerr <<"writing a copy to rdebug.dat before any conversion to R format"<<endl;
-    OSTRM << L;
-    OSTRM.close();
-#endif
-    
-    return convert_metasim_to_R(L);
-  }
-
 
 ///Random number generation depends upon seed and RNG generator defined in the
   ///calling R enviroment
@@ -1206,8 +1175,9 @@ SEXP convert_metasim_to_R(Landscape_space_statistics &L)
 
   convert_R_to_metasim(Rland,L);
 
-  //  Rprintf("in iterate_landscape, did initial conversion\n");
-  
+  //   Rprintf("in iterate_landscape, did initial conversion\n");
+
+  GetRNGstate();
   L.ChooseEpoch();
   L.ConstructDemoMatrix();
 
@@ -1221,13 +1191,13 @@ SEXP convert_metasim_to_R(Landscape_space_statistics &L)
   	  L.Extirpate();
 	  //	  Rprintf("ran Extirpate");
 	  L.Survive();
-	  //      Rprintf("ran survive");
+	  //          Rprintf("ran survive");
   	  L.LandCarry();
 	  //	  Rprintf("ran landcarry");
   	  L.HabCarry();
-	  //	  Rprintf("ran habcarry");
+	  // 	  Rprintf("ran habcarry");
 	  L.Reproduce();
-	  //	  Rprintf("ran reproduce\n");
+	  // 	  Rprintf("ran reproduce\n");
 	  L.Advance();
 	}
     }
@@ -1239,21 +1209,9 @@ SEXP convert_metasim_to_R(Landscape_space_statistics &L)
   L.LandCarry();
   L.HabCarry();
 
-  /*
-  //debug
-  OSTRM.open("test6.dat");
-  if (!OSTRM)
-    {
-      cerr <<"fn "<<"test.dat"<<endl;
-      error ("could not open output file name:");
-    }
-  OSTRM << L;
-  OSTRM.close();
-  //end debug
-  */
-
-
-  Rprintf("in iterate_landscape, converting back to R\n");
+  PutRNGstate();
+  
+  //  Rprintf("in iterate_landscape, converting back to R\n");
   return convert_metasim_to_R(L);
 }
 
@@ -1266,7 +1224,7 @@ SEXP convert_metasim_to_R(Landscape_space_statistics &L)
     int compress;
     
     convert_R_to_metasim(Rland,L);
-    
+    GetRNGstate();
     L.ChooseEpoch();
     L.ConstructDemoMatrix();
     
@@ -1294,19 +1252,7 @@ SEXP convert_metasim_to_R(Landscape_space_statistics &L)
       }
     L.LandCarry();
     L.HabCarry();
-    
-    /*
-  //debug
-  OSTRM.open("test6.dat");
-  if (!OSTRM)
-  {
-  cerr <<"fn "<<"test.dat"<<endl;
-  error ("could not open output file name:");
-  }
-  OSTRM << L;
-  OSTRM.close();
-  //end debug
-  */
+    PutRNGstate();
 
     return convert_metasim_to_R(L);
   }
@@ -1318,7 +1264,7 @@ SEXP survive_landscape(SEXP Rland)
   Landscape_space_statistics L;
 
   convert_R_to_metasim(Rland,L);
-
+  GetRNGstate();
   L.ChooseEpoch();
   L.ConstructDemoMatrix();
 
@@ -1327,7 +1273,7 @@ SEXP survive_landscape(SEXP Rland)
     {
       L.Survive();
     }
-    
+  PutRNGstate();
   return convert_metasim_to_R(L);
 }
 
@@ -1337,7 +1283,7 @@ SEXP reproduce_landscape(SEXP Rland)
   Landscape_space_statistics L;
 
   convert_R_to_metasim(Rland,L);
-
+  GetRNGstate();
   L.ChooseEpoch();
   L.ConstructDemoMatrix();
 
@@ -1345,7 +1291,7 @@ SEXP reproduce_landscape(SEXP Rland)
     {
       L.Reproduce();
     }
-
+  PutRNGstate();
   return convert_metasim_to_R(L);
 }
 
@@ -1359,10 +1305,13 @@ SEXP carry_landscape(SEXP Rland)
   L.ChooseEpoch();
   L.ConstructDemoMatrix();
 
+  GetRNGstate();
+  
   L.LandCarry();
   L.HabCarry();
 
-
+  PutRNGstate();
+  
   return convert_metasim_to_R(L);
 }
 
@@ -1373,14 +1322,18 @@ SEXP extinct_landscape(SEXP Rland)
 
   convert_R_to_metasim(Rland,L);
 
+  GetRNGstate();
+
   L.ChooseEpoch();
   L.ConstructDemoMatrix();
+
 
   if ((L.getgens()>L.getCgen())&&(L.PopSize()!=0))
     {
       L.Extirpate();
     }
-
+  PutRNGstate();
+  
   return convert_metasim_to_R(L);
 }
 
@@ -1453,7 +1406,9 @@ SEXP populate_Rland(SEXP Rland, SEXP Population_sizes)
       }
     ps = sexp_int_to_vector(Population_sizes);
         Rprintf("set everything up to popsizeset \n");
-    L.popsizeset(ps);
+	GetRNGstate();
+	L.popsizeset(ps);
+	PutRNGstate();
     //    Rprintf("about to return but must run convert_metasim_to_R \n");
     return convert_metasim_to_R(L);
     return 0;
@@ -1465,11 +1420,11 @@ SEXP phenotypes(SEXP Rland)
   vector <double> inmat;
   Landscape_space_statistics L;
   int i, l, n;
-
-  convert_R_to_metasim(Rland,L);
-
-  inmat=L.Phenotypes();
   
+  convert_R_to_metasim(Rland,L);
+  GetRNGstate();
+  inmat=L.Phenotypes();
+  PutRNGstate();
   l=inmat.size();
   //  Rprintf("inmat.size(): %i",l);
   SEXP retvec= PROTECT(allocVector(REALSXP,l));

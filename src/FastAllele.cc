@@ -76,7 +76,8 @@ int InfAlleleTbl::getRandAlleleIndex()
 {
   int sz, i,tofind;
   sz = A.size();
-  double *p = new double[sz];
+  vector < double > p ;
+  p.resize(sz);
   int *lookup = new int[sz];
 
   map<int, Allele, less<int> >::iterator tmpiter;
@@ -93,13 +94,13 @@ int InfAlleleTbl::getRandAlleleIndex()
 
   do 
     { 
-      tofind = lookup[RandLibObj.multinomial(p,sz)];
+      tofind = lookup[PickMultinomial(p)];
       tmpiter = A.find(tofind);
     }
   while(tmpiter==A.end());
-  delete [] p;
+  p.clear();
   delete [] lookup;
-  cerr<<"leaving getRandAlleleIndex"<<endl;
+  //  cerr<<"leaving getRandAlleleIndex"<<endl;
   return (*tmpiter).first;  
 }		 
 
@@ -351,7 +352,7 @@ int InfAlleleTbl::mutator(int anum, int t)
 
 
   assert(anum>=0);
-  if (RandLibObj.uniform()<rate)    //a mutation has occurred
+  if (uniform()<rate)    //a mutation has occurred
     {
       Allele na;
       int newanum;
@@ -517,11 +518,11 @@ int StepAlleleTbl::mutator(int anum, int t)
   tmpiter=A.find(anum);
   if (tmpiter!=A.end())
     {
-      if (RandLibObj.uniform()<rate)    //a mutation has occurred
+      if (uniform()<rate)    //a mutation has occurred
 	{
 	  if (((*tmpiter).second.GetState()>0)&((*tmpiter).second.GetState()<=maxstate))
 	    {
-	      if (RandLibObj.uniform()>0.5)
+	      if (uniform()>0.5)
 		{
 		  na.SetState((*tmpiter).second.GetState()+1);  
 		}

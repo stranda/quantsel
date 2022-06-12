@@ -68,7 +68,7 @@ int DemoClass_space::GetRandomIndex ()
 
   while (f==0) // keep trying until an individual is found
     {
-      indx = RandLibObj.unirange(maxind);
+      indx = unirange(maxind);
       if (I.find(indx)!=I.end())
 	{
 	  f=1;
@@ -83,7 +83,7 @@ int DemoClass_space::GetRandomIndex ()
 
 void DemoClass_space::RemoveRandomInd (int t,AlleleLookTbl &Atbls)
 {
-  while (!RemoveInd(RandLibObj.unirange(maxind),t,Atbls)) // keep trying until an individual is erased
+  while (!RemoveInd(unirange(maxind),t,Atbls)) // keep trying until an individual is erased
     {
     }
 }  

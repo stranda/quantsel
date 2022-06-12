@@ -15,7 +15,7 @@ includes
 */
 
 #include <metasim.h>
-#include <RandLib.h>
+#include <RandFuncs.h>
 #include <iostream>
 
 using namespace std;

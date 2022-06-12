@@ -9,7 +9,7 @@
 #include <metasim.h>
 #include <BaseObj.h>
 #include <AlleleObj.h>
-#include <RandLib.h>
+#include <RandFuncs.h>
 /**
 This class implements a general allele lookup table
  */
@@ -21,8 +21,7 @@ protected:
   ///transmission of alleles:  0=biparental, 1=maternal, 2=paternal
   int trans;
   std::vector<int> UNUSED;
-  RandLib RandLibObj;
-
+  
 public:
 
   AlleleTbl();

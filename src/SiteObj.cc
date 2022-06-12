@@ -15,7 +15,7 @@ This is the declaration of the base object type.
 */
 
 #include <SiteObj.h>
-#include <RandLib.h>
+
 
 ///SiteObj constructor.  sets the state as it goes
 
@@ -68,7 +68,7 @@ void SiteObj::Mutate()
       s3 = 'A';
     }
 
-  uni = RandLibObj.uniform() ; 
+  uni = uniform() ; 
   if (uni < 0.33333)
     {
       state = s1;

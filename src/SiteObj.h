@@ -21,11 +21,10 @@ includes
 */
 
 #include <metasim.h>
-#include <RandLib.h>
+#include <RandFuncs.h>
 
 class SiteObj {
   char state; 
-  RandLib RandLibObj;
 public:
   SiteObj (char newstate = ' ');   // default state is a blank
   ~SiteObj ();

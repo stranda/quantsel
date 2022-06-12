@@ -13,7 +13,7 @@ This file is part of Metasim
 */
 
 #include <PackedIndividual_space.h>
-#include <RandLib.h>
+#include <RandFuncs.h>
 
 /**
 Class PackedIndividual_space methods
@@ -38,7 +38,7 @@ PackedIndividual_space::~PackedIndividual_space ()
 /// from a uniform distribution
 int PackedIndividual_space::RandomizeClass(int numclass)
 {
-  return RandLibObj.unirange(numclass);
+  return unirange(numclass);
 }
 
 void  PackedIndividual_space::SetClass(int numclass)
@@ -114,7 +114,7 @@ PackedIndividual_space PackedIndividual_space::MakeGamete(AlleleLookTbl &Atbls)
 	{
 	  //	  a++;
 	  assert(Atbls[i]->getPloidy()==2);
-	  pi.G[((i * MAXPLOIDY))] = G [((i * MAXPLOIDY) + RandLibObj.unirange(1))];
+	  pi.G[((i * MAXPLOIDY))] = G [((i * MAXPLOIDY) + unirange(1))];
 	}
       else if (Atbls[i]->getTrans()==1) //maternal inheritance
 	{
@@ -145,7 +145,7 @@ int PackedIndividual_space::GetRandAlleleIndex(int l)
   int index;
   double ru;
 
-  ru=RandLibObj.uniform();
+  ru=uniform();
   if (ru==1) {ru=0.999999999999;} //if ru=1 then index will equal ploidy below, instead of ploidy-1
   index = (int)floor(ru * (PL[l]));
 
@@ -183,11 +183,12 @@ void PackedIndividual_space::SetRandGenotype(AlleleLookTbl &Atbls)
     {
       for (j=0;j<PL[i];j++)
 	{
-	  cerr <<"i, j "<< i <<", "<< j <<endl;
+	  //	  cerr <<"i, j "<< i <<", "<< j <<endl;
 	  G[ ((i * MAXPLOIDY) + j) ]   =  Atbls[i]->getRandAlleleIndex();
+	  //	  cerr <<"randAlleleIndex run"<<endl;
 	}
     }
-  cerr<<"finished SetRandGenotype"<<endl;
+  //  cerr<<"finished SetRandGenotype"<<endl;
 }
 
 

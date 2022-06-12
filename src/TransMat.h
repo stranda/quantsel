@@ -15,7 +15,7 @@ includes
 */
 
 #include <metasim.h>
-#include <RandLib.h>
+#include <RandFuncs.h>
 #include <iostream>
 
 using namespace std;
@@ -36,7 +36,6 @@ private:
   int f;
   int t;
   std::vector< std::vector<float> > tm;
-  RandLib RandLibObj;
 
 public:
   TransMat ( size_t s=1 ) ;
@@ -102,6 +101,10 @@ public:
 
   ///
 
+
+    
+
+  
   /**
      Takes the current from state and makes a vector of probs that the state winds up in any of the 
 to states.
@@ -122,18 +125,9 @@ void SetRandomFromStateVec();
       the distribution
 
  */
-  size_t RandomState();
+  int RandomState(double adj, int frm);
 
 
-  ///Returns the number of offspring (haploid or diploid) in the next generation
-  /** 
-
-      This method takes the value at the current from and two
-      coordinates and returns the number of offspring produced from
-      choosing a random variate from a poisson distribution
-
- */
-  size_t PoissonOffspring();
 
   /**
 
