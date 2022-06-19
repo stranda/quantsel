@@ -151,8 +151,8 @@ int TransMat::RandomState(double adj, int frm)
   vector < double > p;
   p.resize(Size()+1);
   double s=0.0;
-  int i=0;
-  for (i=0; i<p.size()-1; i++)
+  size_t i=0;
+  for (i=0; i<(p.size()-1); i++)
     {
       p[i] = GetElement(frm,i) * adj;
       s = s+p[i];
@@ -161,7 +161,7 @@ int TransMat::RandomState(double adj, int frm)
   if (s<1.0) {p[p.size()-1]=1.0 - s;}
   int rs = PickMultinomial(p);
   //  cerr << "p.back() "<<p.back()<<", p.size() "<<p.size()<<", i: "<<i<<", rs "<<rs<<endl;
-  if (rs == (p.size()-1)) {rs=-1;}
+  if (rs == int(p.size()-1)) {rs=-1;}
 
   return rs;
 }

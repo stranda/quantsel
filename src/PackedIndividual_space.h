@@ -82,9 +82,9 @@ public:
   void SetGen(int newgen=0);
   int GetGen();
 
-  void SetLoci(AlleleLookTbl &Atbls);
+  void SetLoci(vector<vector<int>> locinfo);
 
-  void resetLoci(AlleleLookTbl &Atbls);
+  void resetLoci(vector<vector<int>> locinfo);
 
   inline  double GetX()
     {
@@ -210,7 +210,7 @@ public:
       return changed;
     }
 
-  PackedIndividual_space MakeGamete(AlleleLookTbl &Atbls);
+  PackedIndividual_space MakeGamete(vector<vector<int>> locinfo);
 
 
   int GetRandAlleleIndex(int l);
@@ -231,7 +231,7 @@ public:
    */
   void Death(int t, AlleleLookTbl &Atbls);
 
-  PackedIndividual_space repro_sex(PackedIndividual_space & SO1, PackedIndividual_space & SO2, int t, AlleleLookTbl &Atbls);
+  PackedIndividual_space repro_sex(PackedIndividual_space & SO1, PackedIndividual_space & SO2, int t, std::vector<std::vector< int >> locinfo);
   PackedIndividual_space repro_asex(PackedIndividual_space & SO, int t=0);
 
 

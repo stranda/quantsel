@@ -7,7 +7,7 @@
 
 /* includes */
 #include <FastAllele.h>
-//#include <FastSeqAllele.h>
+#include <FastSeqAllele.h>
 
 /**
 This class implements a landscape-wide collection og sequence allele lookup tables
@@ -18,6 +18,7 @@ protected:
   vector < AlleleTbl* > Atbl;
 public:
   AlleleLookTbl();
+    AlleleLookTbl(const AlleleLookTbl &nat);
   ~AlleleLookTbl();
 
   ///Add a new allele tbl to the lookup

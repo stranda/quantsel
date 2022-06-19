@@ -191,6 +191,8 @@ protected:
   ///males in them and is reset each Reproduce() call
   //  vector < int > occupied_subpops;
 
+  //New offspring produced before classifying into Class
+  vector < PackedIndividual_space > newoff;
 
   ///Lookup table of alleles at all loci
   AlleleLookTbl Atbls;
@@ -631,7 +633,8 @@ void zerok();
 
   inline void SetUpInd(PackedIndividual_space &ind)
   {
-    ind.resetLoci(Atbls);
+    std::vector<std::vector< int >> locinfo = GetLocInfo();
+    ind.resetLoci(locinfo);
   }
   
   inline int addIndividual(PackedIndividual_space ind, int t)
@@ -708,6 +711,13 @@ void zerok();
 	assert(1==0);
       }
   }
+
+  inline AlleleLookTbl GetAtbls()
+  {
+    return Atbls;
+  }
+
+  std::vector< std::vector<int>> GetLocInfo();
 
   /**
 
@@ -796,6 +806,11 @@ vector < PackedIndividual_space > CalculateMaleGameteClassVectorApproxDist(Packe
 
 void Reproduce();
 
+  /***
+Reproduce_stage takes all the individuals from a stage, determines if they can reproduce and then add offspring
+  ****/
+  vector< PackedIndividual_space > Reproduce_stage(size_t & k, const std::vector<std::vector<int>> &locinfo);
+  
   /**
      same as reproduce, but uses a different approach to movement of male gametes. This is _not_ the algorithm defined in the kernelPop paper in Molecular Ecology Res.
   **/
@@ -910,14 +925,6 @@ Landscape_space_statistics (int h=1, int stg=2, int loc=1, int ep=1, int gn=2);
 void Statistics(ostream &streamout = cout);
 
   //Demographic Stats
-  /**
-
-     Return generation length by averaging the ages of reproductive individuals weighted by the number of offspring they produce
-
-  */
-double GenLength();
-
-
 
   //Methods to output  data to stream
 

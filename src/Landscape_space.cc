@@ -12,6 +12,7 @@ This file is part of Metasim
 
 #include <Landscape_space.h>
 #include <sstream>
+#include <execution>
 #include <unistd.h>
 #include <Rmath.h>
 
@@ -414,10 +415,10 @@ void Landscape_space::setk(int ep, int *cv)
 ///this function sets the extent of the populations and sets up the sub-population matrix
 void Landscape_space::setpoploc(int ep, double *lx, double *rx,double *topy, double *boty)
 {
-  int i,j,k;
-  int spx, spy, spc;
+  int i;
+  //  int spy, spc;
 
-  spc=0; //counter for subpopulation assignment
+  //spc=0; //counter for subpopulation assignment
   for (i=0;i<nhab;i++)
     {
       popleftx[ep][i]=lx[i];
@@ -521,6 +522,22 @@ void Landscape_space::getldemovector(int ep, double *dv)
     {
       dv[i]=demoProbVec[ep][i];
     }
+}
+
+
+std::vector<std::vector< int >> Landscape_space::GetLocInfo()
+{
+  assert(Atbls.size()>0);
+  size_t i;
+  std::vector<std::vector< int >> locinfo;
+  locinfo.resize(Atbls.size());
+  for (i=0; i<Atbls.size(); i++)
+    {
+      locinfo[i].resize(2);
+      locinfo[i][0]=Atbls[i]->getTrans();
+      locinfo[i][1]=Atbls[i]->getPloidy();
+    }
+  return locinfo;
 }
 
 void Landscape_space::zeroextinct()
@@ -645,7 +662,8 @@ void Landscape_space::popsizeset(std::vector<int> &ps)
   int totpop ;
   PackedIndividual_space Ind;
   DemoClass_space DC;
-
+  std::vector<std::vector<int>>  locinfo = GetLocInfo();
+  
   psz=ps.size();
 
   totpop = 0;
@@ -662,7 +680,7 @@ void Landscape_space::popsizeset(std::vector<int> &ps)
       for (j=0; j<ps[i]; j++)
 	{
 	  Ind.SetClass(i);
-	  Ind.SetLoci(Atbls);
+	  Ind.SetLoci(locinfo);
 	  //	  cerr<<"about to setrandgenotypes"<<endl;
 	  Ind.SetRandGenotype(Atbls);
 	  Ind.Change(-1);
@@ -731,7 +749,7 @@ double Landscape_space::betamax(double a,double b)
 {
   double mx=0;
   double rcnt = 0.0;
-  double res = 25;
+  //  double res = 25;
   for (int i=0;i<=25;i++)
     {
       double db = dbeta(rcnt/25.0,a,b,0);
@@ -748,7 +766,7 @@ double Landscape_space::getAdjDemo(int response, PackedIndividual_space Ind)
   //cerr << "response" << response <<endl;
   //  Now get information about possible feedback between phenotype and survival (selection)
     
-  double phenMidpoint=0.5; ///assumes that phenotypes range 0-1.  The expression matrix determines this
+  //  double phenMidpoint=0.5; ///assumes that phenotypes range 0-1.  The expression matrix determines this
   double adj = 1.0;  //the survival prob adjustment factor (1.0 = no selection on survival)
   double mx = 0;
   double meanadj = 0;
@@ -802,7 +820,7 @@ double Landscape_space::getAdjDemo(int response, PackedIndividual_space Ind)
 double Landscape_space::getAdjDemoDens(PackedIndividual_space Ind)
 {
   int response = 7;  //this is the row of the gpdemo object that encodes reduction in crowding effects
-  double phenMidpoint=0.5; ///assumes that phenotypes range 0-1.  The expression matrix determines this
+  //  double phenMidpoint=0.5; ///assumes that phenotypes range 0-1.  The expression matrix determines this
   double adj = 1.0;  //the survival prob adjustment factor (1.0 = no selection on survival)
   double mx = 0;
   double sumadj = 0.0;
@@ -859,31 +877,32 @@ void Landscape_space::Survive()
   int rs;
   size_t i, j, isz, sz;
 
+  //cerr<<"in survive"<<endl;
+  //  cerr << "Atblstart (surv)"<<endl <<Atbls<<endl;
   deadindices.reserve(1000);
   changeindices.reserve(1000);
   sz = nhab * s;
   for (i=0;i<sz;i++)
     {
       //     S[e].SetFromState(i); //choose a column in the survival/migration matrix
-
       I[i].ResetIndividuals();
       isz = I[i].size();
       double kAdj = (kvec[e][i/s]-static_cast<double>(isz))/kvec[e][i/s];//strength of density dependence on class
+
       if (kAdj<0) {kAdj=0;}
 
-      I[i].ResetIndividuals();
       for (j=0;j<isz;j++)
 	{
 	  ind = I[i].GetCurrentIndividual();
 	  indx = I[i].GetCurrentIndex();
 	  if ((indx<0)||(ind.GetClass()<0))
 	    {
-	      //cerr << " run off the the end of the individual map for class " << i<<endl;
+	      cerr << " run off the the end of the individual map for class " << i<<endl;
 	      assert(ind.GetClass()>=0);
 	    }
 	  if (ind.GetChanged()<t)
 	    {
-	      //      cerr << "kAdj "<<kAdj <<" kvec[e][i/s] "<<kvec[e][i/s] << " iszd "<<isz<<", i: "<<i<<endl;
+	      //cerr << "kAdj "<<kAdj <<" kvec[e][i/s] "<<kvec[e][i/s] << " iszd "<<isz<<", i: "<<i<<", j: "<<j<<endl;
 	      //      cerr << "about to run getAdjDemo in Survive" << endl;
 	      double Sadj=getAdjDemo(5,ind); //Survival fitness adjustment
 	      double indKadj=kAdj+getAdjDemoDens(ind); //strength of dens dependence on this ind
@@ -894,17 +913,19 @@ void Landscape_space::Survive()
 	      //	      cerr << "indKadj " << indKadj << " kAdj "<<kAdj<<" Sadj "<<Sadj<<endl;
 	      
 	      //	      S[e].SetRandomToStateVec(Sadj*indKadj);
-	      
+	      //cerr<<"adjustment sent to S "<<Sadj*indKadj<<endl;
 	      rs = S[e].RandomState(Sadj*indKadj, i);
-
-	      //	      cerr << "ran RandomState, rs: "<<rs<<", S[e].size: "<<S[e].Size()<<endl;
+	      //	      	      cerr <<"rs = "<<rs<<", and i = " << i << endl;
+	      //cerr << "ran RandomState, rs: "<<rs<<", and i = " << i <<", S[e].size: "<<S[e].Size()<<endl;
 	      
 	      if (rs<0)//ind dies
 		{
+		  //		  cerr << "died"<<endl;
 		  deadindices.push_back(indx);
 		}
 	      else if (rs!=int(i))
 		{
+		  //		  cerr << "changed cats"<<endl;
 		  ind.Change(t);
 		  ind.SetClass(rs);
 		  ind.Growth(Atbls);
@@ -913,6 +934,7 @@ void Landscape_space::Survive()
 		}
 	      else
 		{
+		  //		  cerr<<"stayed in same cat"<<endl;
 		  I[i].ChangeInd(indx,t);
 		}
 	    }
@@ -927,6 +949,7 @@ void Landscape_space::Survive()
 
       for (inditer=deadindices.begin();inditer!=deadindices.end();inditer++)
 	{
+	  //	  cerr<<"removing an individual:"<<endl;
 	  I[i].RemoveInd(*inditer,t,Atbls);
 	}
       for (inditer=changeindices.begin();inditer!=changeindices.end();inditer++)
@@ -938,6 +961,9 @@ void Landscape_space::Survive()
       changeindices.clear();
       
     }
+  //cerr<< "leaving survive, here are the class sizes:"<<endl;
+  //for (i=0;i<I.size();i++) {sz=I[i].size();cerr << sz <<", ";}
+  //cerr<<endl;
 }
 
 /** 
@@ -1120,13 +1146,14 @@ std::vector< double > Landscape_space::IndividualPhenotype(PackedIndividual_spac
   Allele ali;
   size_t np ;
   size_t nl ;
-
+  size_t p;
+  
   nl=getloci();
   np=getnphen();
 
   std::vector< double > rvec;
   double ac;
-  int p,l, st, pl, al;
+  int l, st, pl, al;
 
   //  rvec(0)=1.0;
   
@@ -1179,13 +1206,13 @@ std::vector< double > Landscape_space::IndividualPhenotype(PackedIndividual_spac
 
 std::vector< double > Landscape_space::Phenotypes()
 {
-  size_t sz;
+  size_t sz, k, j;
   size_t cls = gethabs()*getstages();
   size_t np = getnphen();
   std::vector < double > retvec, tmpvec;
   PackedIndividual_space ind;
   size_t i;
-  int k,j,idx ;
+  int idx ;
   sz=0;
   for (k=0;k<cls;k++)
     {
@@ -1311,26 +1338,106 @@ noff, searchI, nmix, indx, Rval, mate, tmpx, tmpy, tmpI, err
  **/
 void Landscape_space::Reproduce()
 {
-  PackedIndividual_space tmpI, mate, searchI;
-  vector < double > pvec;
-  vector< PackedIndividual_space > tmpmales, valid_males, males;
-  vector<int> MalePopIds;
-    //  vector < PackedIndividual_space >::iterator ti ;
-  double tmpx, tmpy, radius;
-  double kAdj, indKadj, Radj;
-  double Rval, nmix ;
-  int err, indx;
-  int q,noff ;
-  int bsecls ;
-  size_t j, i, k, l, sz, lsz ;
+  PackedIndividual_space ind;
+  size_t  i, sz;
   sz = nhab * s;
   //  int rows=getrows();
   //  int cols=getcols();
+  //  cerr << "inside Reproduce()" <<endl;
+  //  cerr << "Atblstart "<<endl <<Atbls<<endl;
+  vector<vector<int>> locinfo=GetLocInfo();
+  vector < vector <PackedIndividual_space> > off;
+  //  for (i=0;i<Atbls.size();i++) sz = Atbls[i]->getPloidy();
+  //  cerr << "about to resize off"<<endl;
+  off.resize(sz);
   
-  for (k=0;k<sz;k++)
+  vector < PackedIndividual_space > o;
+  //  o.AddIndividual(ind);
+  //  cerr << off[0].size() << ", "<<o.size()<<endl;
+  //  PackedIndividual_space  ci = off[sz-1].GetCurrentIndividual();
+  //  cerr << "off sz-1 current: " << ci.GetClass() <<endl ;
+  
+  vector < size_t > kseq;
+
+  for (i=0;i<sz;i++)
     {
-      //      cerr <<"checkpoint in reproduce" <<" stage: "<<k<<endl;
-      if (R[e].AnyFrom(k) & (I[k].size()>0)) ///find out if offspring can be produced by this class
+      off[i].resize(0);
+      if (R[e].AnyFrom(i)) kseq.push_back(i);
+      //      Reproduce_stage(i,sz);    
+    }//i
+
+  //  cerr <<"about to run transform" <<endl;
+  //  cerr <<"length of kseq: "<<kseq.size()<<endl;
+  //  cerr <<"length of off: "<<off.size()<<endl;
+
+  /**
+  for (i=0;i<sz;i++)
+    {
+      o=Reproduce_stage(i,locinfo);
+      off[i].insert(off[i].end(),o.begin(),o.end());
+      //      cerr << i << ", ";
+    }
+  //  cerr<<"loop over"<<endl;
+  **/
+   
+  std::transform(std::execution::par,
+		 begin(kseq),end(kseq),begin(off),
+		 [&,this](auto k){return Landscape_space::Reproduce_stage(k,locinfo);}
+		 );
+  //std::transform(kseq.begin(),kseq.end(),off.begin(),[*this](size_t k){Landscape_space::Reproduce_stage(k);});
+
+  //  cerr << "ran transform" << endl;
+  
+  
+  for (i=0;i<sz;i++)
+    for (size_t j=0;j<off[i].size();j++)
+      {
+	ind = off[i][j];
+
+	ind.Birth(t,Atbls);  //this can modify the Atbl, hard to parallelize
+	
+	if ((ind.GetClass()<0)||(I[ind.GetClass()].AddIndividual(ind)<0))
+	  {
+	    cerr << "adding an individual failed" << endl;
+	  } 
+	//cerr<<"added individual : "<<j<<endl;
+      }
+
+  //  cerr << "Atbl" <<Atbls<<endl;
+  //  cerr << "finished reproduce" <<endl;
+  
+}//end of function Reproduce
+
+
+/****
+implement reproduction for each stage. This is the inside of the old 'k' loop
+*****/
+
+vector<PackedIndividual_space> Landscape_space::Reproduce_stage(size_t &k, const vector<vector<int>> &locinfo)
+{
+  PackedIndividual_space tmpI, mate, searchI;
+  vector < double > pvec;
+  vector< PackedIndividual_space > tmpmales, valid_males, males, offspring;
+  vector<int> MalePopIds;
+  double tmpx, tmpy, radius;
+  double kAdj, indKadj, Radj;
+  double Rval, nmix ;
+  //  int err, indx;
+  int q,noff ;
+  int bsecls ;
+  size_t j, i, l,  lsz, sz;
+  sz = nhab * s;
+  //  int rows=getrows();
+  //  int cols=getcols();
+
+  //  cerr << "in Rep_stg, k: "<<k<<endl;
+
+  //  cerr << "LAtbls" << &LAtbls <<endl;
+
+  
+  //  offspring.ResetIndividuals();
+  
+  if (R[e].AnyFrom(k) & (I[k].size()>0)) ///find out if offspring can be produced by this class
 	{
 	  //	  R[e].SetFromState(k); //now using R[e].GetElement()
 	  tmpmales.clear();
@@ -1376,7 +1483,7 @@ void Landscape_space::Reproduce()
 		  cerr << "no individual returned from deomgraphic class"<<endl;
 		  assert(searchI.GetClass()==0);
 		}
-	      indx = I[k].GetCurrentIndex();
+	      //	      indx = I[k].GetCurrentIndex();
 	      ///decides where pollen comes from
 	      //males will need to be private  
 	      males.clear();
@@ -1409,9 +1516,6 @@ appropriate column of the M[e] matrix.
 		    }
 		  if (noff>0)
 		    {
-		      I[k].SetCurrentLastRep(t);
-		      I[k].SetCurrentNumOff(noff);
-		      
 		      /*
 			choosing mate.  At this point the effects of genotype upon the mates
 			ability to produce pollen could be inserted.
@@ -1438,7 +1542,7 @@ appropriate column of the M[e] matrix.
 		      //		      cerr << "Radj "<<Radj<<" indKadj "<<indKadj << " noff before" << noff ;
 		      noff = floor(noff*Radj*indKadj);
 
-		      //		      cerr << " noff after: "<<noff<<endl;
+		      //  		      cerr << " noff after: "<<noff<<endl;
 		    
 		      for (q=0;q<noff;q++)
 			{
@@ -1494,23 +1598,18 @@ function we have disallowed multiple paternity anyway.  This comment just memori
 			      //			      cerr << "mother "<<searchI;
 			      //			      cerr <<"mate "<<mate <<endl;
 			      //
-			      tmpI = searchI.repro_sex(searchI,mate,t,Atbls);
+			      tmpI = searchI.repro_sex(searchI,mate,t,locinfo);
 			      ///this could/should be made user selectable
 			      bsecls = j - (Habitat(j) * s) ; 
 			      tmpI.SetClass((bsecls + (getpopulation(tmpx,tmpy) * s)));
 
 			      tmpI.SetSex(0);
 			      tmpI.SetGen(t) ;
+			      tmpI.SetLoci(locinfo);
 			      tmpI.Change(-1);
-			      //			      cerr<<"about to birth...";
 
-			      tmpI.Birth(t,Atbls) ;
-
-			      //			      cerr<<"birthed"<<endl;
-			      //  cerr << "Seed mu "<<seed_mu<<endl;
 			      tmpI.SetX(tmpx);
 			      tmpI.SetY(tmpy);
-			      //			      tmpI.SetSub(getsubpopulation(tmpI.GetX(),tmpI.GetY())) ;
 
 			      ///keep track of mother's location
 			      tmpI.SetMX(searchI.GetX());
@@ -1518,12 +1617,13 @@ function we have disallowed multiple paternity anyway.  This comment just memori
 			      ///keep track of father's location
 			      tmpI.SetFX(mate.GetX());
 			      tmpI.SetFY(mate.GetY());
-			      err = 0;			      
-			      if (I[tmpI.GetClass()].AddIndividual(tmpI)<0)
-				{
-				  cerr << "adding an individual failed" << endl;
-				}
-			      
+			      //err = 0;
+			      //			      cerr<< "about to push back tmpI, "<<tmpI<<", q "<<q<<endl;
+			      offspring.push_back(tmpI);
+			      //  if (offspring.AddIndividual(tmpI)<0)
+			      //	{
+			      //	  cerr << "adding an individual failed" << endl;
+			      //	}
 			    }
 			} //q
 		     }//end if noff>0
@@ -1532,34 +1632,12 @@ function we have disallowed multiple paternity anyway.  This comment just memori
 	      I[k].NextIndividual();
 	    }  //l
         } //if R[e].AnyFrom
-    }//k 
+  //  cerr<<"made it to end, k: "<<k<<", size offspring: "<<offspring.size()<<endl;
 
-}//end of function Reproduce
-
-
-/****
-implement reproduction for each stage. This is the inside of the old
-
-void Landscape_space::Reproduce_stage()
-{
-  PackedIndividual_space tmpI, mate, searchI;
-  vector < double > pvec;
-  vector< PackedIndividual_space > tmpmales, valid_males, males;
-  vector<int> MalePopIds;
-    //  vector < PackedIndividual_space >::iterator ti ;
-  double tmpx, tmpy, radius;
-  double kAdj, indKadj, Radj;
-  double Rval, nmix ;
-  int err, indx;
-  int q,noff ;
-  int bsecls ;
-  size_t j, i, k, l, sz, lsz ;
-  sz = nhab * s;
-  //  int rows=getrows();
-  //  int cols=getcols();
+  return offspring;
 }
 
-***/
+
 
 void Landscape_space::Extirpate()
 {
@@ -2296,23 +2374,6 @@ void Landscape_space_statistics::Statistics(ostream & streamout)
 }
 
 
-double Landscape_space_statistics::GenLength()
-{
-  size_t i,sz;
-  double gensiz=0.0,tmp;
-  double totparents=0.0;
-  sz=s*nhab;
-  for (i=0;i<sz;i++)
-    {
-      if (R[e].AnyFrom(i))
-	{
-	  gensiz = gensiz + I[i].GenLength(t)*I[i].size();
-	  totparents= totparents + I[i].size();
-	}
-    }
-  tmp = gensiz/totparents;
-  return tmp;
-}
 
 void Landscape_space_statistics::ArlequinDiploidOut(int numind, ostream &streamout)
 {

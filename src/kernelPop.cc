@@ -4,6 +4,7 @@ Allan Strand 9/17/01
 
 #include <Landscape_space.h>
 #include <FastAllele.h>
+#include <FastSeqAllele.h>
 #include <RandFuncs.h>
 #include <iostream>
 #include <fstream>
@@ -76,7 +77,7 @@ Allan Strand 9/17/01
     int i,j,np,nl;
     double *hsq;
     int *addstates;
-    int tmp;
+    //    int tmp;
 
     hsq = (double *) R_alloc(long(L.getnphen()), sizeof(double));
     addstates = (int *) R_alloc(int(L.getloci()), sizeof(int));
@@ -95,7 +96,7 @@ Allan Strand 9/17/01
       {
 	L.setaddstate(i,addstates[i]);
 	//	Rprintf("addstate: %i\n",addstates[i]);
-	tmp=L.getaddstate(i);
+	//	tmp=L.getaddstate(i);
 	//	Rprintf("tmp: %i\n",tmp);
       }
     std::vector< std::vector< double > > em;
@@ -311,10 +312,11 @@ void R_to_metasim_loci(SEXP inlist, Landscape_space_statistics& L)
     
     const char *ststr;
     ststr = NULL;
-    int andx,i=0,j=0,sl=0;
+    int andx,i=0;
     int nloc = length(inlist);///number of loci
     int l =0;
     int ltype;
+    int sl, j;
     
     AlleleTbl *AT;
     AT =NULL;
@@ -360,6 +362,39 @@ void R_to_metasim_loci(SEXP inlist, Landscape_space_statistics& L)
 		andx = INTEGER(coerceVector(getListElement(na,AINDXNAME),INTSXP))[0];
 		
 		AT->addAlleleAndIndexRef(&ali,andx);
+		UNPROTECT(1);///na
+	      }
+	  }
+	else if (ltype==SEQALLELETBL)
+	  {
+	    AT = new SeqAlleleTbl;
+	    AT->clear();
+	    int numa = length(getListElement(Locus,ALISTNAME));
+	    for (i=0;i<numa;i++)
+	      {
+		SEXP na = VECTOR_ELT(getListElement(Locus,ALISTNAME),i);
+		PROTECT(na);
+		
+	        ststr = CHAR(asChar(getListElement(na,STATENAME)));
+		sl = strlen(ststr);
+		assert(sl<=MAXSEQLEN);
+		assert(sl>0);
+		
+		SeqAllele als(sl);
+		als.SetBirth(INTEGER(coerceVector(getListElement(na,ABIRTHNAME),INTSXP))[0]);
+		als.SetProp(REAL(coerceVector(getListElement(na,PROPNAME),REALSXP))[0]);
+		
+		for (j=0;j<sl;j++)
+		  {
+		    als.SetSite(ststr[j],j);
+		  }
+		AT->setSeqLen(j);
+		andx = INTEGER(coerceVector(getListElement(na,AINDXNAME),INTSXP))[0];
+#ifdef RDEBUG
+		//		cerr << "Allele index: "<<andx<<" Allele: ";
+		//		als.Write(cerr);
+#endif
+		AT->addAlleleAndIndexRef(&als,andx);
 		UNPROTECT(1);///na
 	      }
 	  }
@@ -617,7 +652,7 @@ read in landscapes
 
     //Rprintf("entered metasim_to_R_expression \n");
  int i,j,np,nl;
-    double tmp;
+ //    double tmp;
     SEXP Elist = PROTECT(allocVector (VECSXP,3));
     SEXP Elistn = PROTECT(allocVector (STRSXP,3));
     
@@ -637,7 +672,7 @@ read in landscapes
     for (i=0;i<nl;i++)
       for (j=0;j<np;j++)
 	{
-	  tmp=L.getexpmatel(i,j);
+	  //	  tmp=L.getexpmatel(i,j);
 	  //	  Rprintf("expval: %g \n",tmp);
 	  REAL(coerceVector(expmat, REALSXP))[j*nl+i] = L.getexpmatel(i,j);
 	}
@@ -1189,15 +1224,15 @@ SEXP convert_metasim_to_R(Landscape_space_statistics &L)
       if ((L.getgens()>L.getCgen())&&(L.PopSize()!=0))
 	{
   	  L.Extirpate();
-	  //	  Rprintf("ran Extirpate");
+	  //	  	  Rprintf("ran Extirpate\n");
 	  L.Survive();
-	  //          Rprintf("ran survive");
+	  //	            Rprintf("ran survive\n");
   	  L.LandCarry();
-	  //	  Rprintf("ran landcarry");
+	  //	  	  Rprintf("ran landcarry\n");
   	  L.HabCarry();
-	  // 	  Rprintf("ran habcarry");
+	  //	   	  Rprintf("ran habcarry\n");
 	  L.Reproduce();
-	  // 	  Rprintf("ran reproduce\n");
+	  //	   	  Rprintf("ran reproduce\n");
 	  L.Advance();
 	}
     }
@@ -1419,7 +1454,7 @@ SEXP phenotypes(SEXP Rland)
 {
   vector <double> inmat;
   Landscape_space_statistics L;
-  int i, l, n;
+  int i, l;
   
   convert_R_to_metasim(Rland,L);
   GetRNGstate();
@@ -1477,7 +1512,7 @@ SEXP test()
   {
     SEXP Indmat= PROTECT(allocVector(REALSXP,10000));
     int i;
-    double x,y;
+    double x=1.0,y=1.0;
     for (i=0; i<10000;i++)
       {
 	//	RandLibObj.rassym_mixed_xy(1000,1000,100,200,100,200,1,50,1,50,0.5,0.5,1,x,y);

@@ -25,6 +25,7 @@ protected:
 public:
 
   AlleleTbl();
+
   virtual ~AlleleTbl();
 
   virtual void WriteAlleleState(int a, ostream &stream)=0;
@@ -103,6 +104,7 @@ protected:
 
 public:
   InfAlleleTbl();
+  InfAlleleTbl(const InfAlleleTbl &nt);
   ~InfAlleleTbl();
   /// returns allele at index i if i is in range.	
   inline Allele getAllele_InfAlleleTbl(int i)
@@ -229,7 +231,6 @@ public:
     sl++;  ///doesn't do anything for this class, defined as virtual in parent.
   }
 
-
   void SetMaxState();
   void GCAlleles();
   void KillAlleleCopy(int i, int t);
@@ -261,6 +262,7 @@ class StepAlleleTbl: public InfAlleleTbl {
 
 public:
   StepAlleleTbl();
+  StepAlleleTbl(const StepAlleleTbl &nt);
   ~StepAlleleTbl();
 
   inline Allele getAllele(int i)

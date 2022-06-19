@@ -20,9 +20,27 @@ DemoClass_space::DemoClass_space ()
 {
   maxind = 0;
   indcnt = 0;
+  
 }
+
+//copy constructor
+DemoClass_space::DemoClass_space (const DemoClass_space& dc)
+{
+  //  cerr << "in DC_space copy constructor" <<endl;
+
+  maxind = dc.maxind;
+  indcnt = dc.indcnt;
+  cl = dc.cl;
+  I.insert(begin(dc.I),end(dc.I));
+  for (size_t i=0; i<dc.UNUSED.size();i++) UNUSED[i]=dc.UNUSED[i];
+  nextind = begin(I);
+  //  cerr << "finished DC_space copy constructor, length: " <<I.size()<<endl;
+}
+
 DemoClass_space::~DemoClass_space ()
 {
+  I.clear();
+  UNUSED.clear();
 }
 
 ///add an individual to the data structure.  Returns the index to the individual.
@@ -114,41 +132,6 @@ void DemoClass_space::CompressClass (double frac)
     }
 }
 
-double DemoClass_space::GenLength (int t)
-{
-  double genoff, totoff;
-  //  int indx;
-
-  int lr, no;
-
-  if (I.size()>0)
-    {
-      genoff=0.0;
-      totoff=0.0;
-      ResetIndividuals();
-      do
-	{
-	  //	  indx = GetCurrentIndex();
-	  lr = GetCurrentLastRep();
-	  no =  GetCurrentNumOff();
-	  genoff =+ ((t - lr) * no);
-	  totoff =+ no;
-	}
-      while (!NextIndividual());
-      if (totoff==0) 
-	{
-	  return 0;
-	}
-      else
-	{
-	  return double(genoff/totoff);
-	}
-    }
-else
-  {
-    return 0.0;
-  }
-}
 
 vector < PackedIndividual_space > DemoClass_space::ReturnAsVector ()
 {

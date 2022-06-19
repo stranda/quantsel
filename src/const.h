@@ -24,6 +24,7 @@ Constants
 /**
 Largest random number possible given the stdlib random number generator
 */
+
 #define MAXRANDOM             2147483647.0
 
 #define HABDELTA              0.01

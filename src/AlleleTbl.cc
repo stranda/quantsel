@@ -16,6 +16,16 @@ AlleleLookTbl::AlleleLookTbl()
 {
   
 }
+
+AlleleLookTbl::AlleleLookTbl(const AlleleLookTbl &nat)
+{
+  size_t i;
+  for (i=0; i<nat.Atbl.size(); i++)
+    {
+      Atbl.push_back(nat.Atbl[i]);
+    }
+}
+
 AlleleLookTbl::~AlleleLookTbl()
 {
   clear();

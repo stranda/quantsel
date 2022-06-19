@@ -24,8 +24,13 @@ PackedIndividual_space::PackedIndividual_space (int c, int g, int nl)
   cl=c;
   sex=0;
   gen=g;
+  x=0;
+  y=0;
+  mx=0;my=0;
+  fx=0;fy=0;
+ 
   assert(nl <= MAXLOCI);
-  ///  SetLoci();
+  //  SetLoci();
   Change(g-1);
   SetLastRep(0);
   SetNumOff(0);
@@ -69,27 +74,27 @@ int PackedIndividual_space::GetGen()
 }
 
 
-void PackedIndividual_space::SetLoci(AlleleLookTbl &Atbls)
+void PackedIndividual_space::SetLoci(vector<vector<int>> locinfo)
 {
   int i;
   for (i=0;i<MAXLOCI;i++)
     {
-      if (i<int(Atbls.size()))
+      if (i<int(locinfo.size()))
 	{
-	  PL[i]=Atbls[i]->getPloidy();
+	  PL[i]=locinfo[i][1];  //second column of locinfo is ploidy
 	}
       else
 	{
 	  PL[i]=0;
 	}
     }
-  nloc=int(Atbls.size());
+  nloc=int(locinfo.size());
 }
 
-void PackedIndividual_space::resetLoci(AlleleLookTbl &Atbls)
+void PackedIndividual_space::resetLoci(vector<vector<int>> locinfo)
 {
   int i,j;
-  SetLoci(Atbls);
+  SetLoci(locinfo);
   for (i=0;i<MAXLOCI;i++)
     {
       for (j=0;j<MAXPLOIDY;j++)
@@ -100,28 +105,28 @@ void PackedIndividual_space::resetLoci(AlleleLookTbl &Atbls)
 }
 
 
-PackedIndividual_space PackedIndividual_space::MakeGamete(AlleleLookTbl &Atbls)
+PackedIndividual_space PackedIndividual_space::MakeGamete(vector<vector<int>> locinfo)
 {
   int i;
   int lsize;
   //  int a=0,b=0,c=0;
   PackedIndividual_space pi;
-  pi.resetLoci(Atbls);
+  pi.resetLoci(locinfo);
   lsize = nloc;
   for (i=0;i<lsize;i++)
     {
-      if (Atbls[i]->getTrans()==0)  //biparental inheritance
+      if (locinfo[i][0]==0)  //biparental inheritance
 	{
 	  //	  a++;
-	  assert(Atbls[i]->getPloidy()==2);
+	  assert(locinfo[i][1]==2);
 	  pi.G[((i * MAXPLOIDY))] = G [((i * MAXPLOIDY) + unirange(1))];
 	}
-      else if (Atbls[i]->getTrans()==1) //maternal inheritance
+      else if (locinfo[i][0]==1) //maternal inheritance
 	{
 	  //	  b++;
 	  pi.G[((i * MAXPLOIDY))] = G [ i * MAXPLOIDY ];
 	}
-      else if (Atbls[i]->getTrans()==2) //Paternal inheritance. male parent
+      else if (locinfo[i][0]==2) //Paternal inheritance. male parent
 	{
 	  //	  c++;
 	  pi.G[((i * MAXPLOIDY))] = G [ i * MAXPLOIDY ]; 
@@ -195,17 +200,17 @@ void PackedIndividual_space::SetRandGenotype(AlleleLookTbl &Atbls)
 
 
 
-PackedIndividual_space  PackedIndividual_space::repro_sex(PackedIndividual_space & SO1, PackedIndividual_space & SO2, int t, AlleleLookTbl &Atbls)
+PackedIndividual_space  PackedIndividual_space::repro_sex(PackedIndividual_space & SO1, PackedIndividual_space & SO2, int t, std::vector<std::vector<int>> locinfo)
 {
   int i;
   int k, l;
   PackedIndividual_space pi(SO1), ti0, ti1;
-  pi.resetLoci(Atbls);
+  pi.resetLoci(locinfo);
 
   //  assert(SO2.IsGenotypeSet());
 
-  ti0 = SO1.MakeGamete(Atbls);
-  ti1 = SO2.MakeGamete(Atbls);
+  ti0 = SO1.MakeGamete(locinfo);
+  ti1 = SO2.MakeGamete(locinfo);
 
   for (i=0;i<nloc;i++)
     {
@@ -215,15 +220,6 @@ PackedIndividual_space  PackedIndividual_space::repro_sex(PackedIndividual_space
       l = ti1.GetAllele(i,0);
       assert(l>=0); 
       pi.G[((i * MAXPLOIDY) + 1)] = l;
-
-      //swap alleles so that diploid heterozygotes are sorted //if not then can tract haplotypes from parents
-      //     if (PL[i]==2)
-      //	{ 
-      //	  if ((pi.G[((i * MAXPLOIDY) + 1)] >= 0) && (pi.G[((i * MAXPLOIDY) + 0)] > pi.G[((i * MAXPLOIDY) + 1)] ))
-      //	    {
-      //	      pi.swap_allele(i);
-      //	    }
-      //	}
     }
   return pi;
 }
@@ -245,6 +241,7 @@ PackedIndividual_space  PackedIndividual_space::repro_asex(PackedIndividual_spac
 void PackedIndividual_space::Growth(AlleleLookTbl &Atbls)
 {
   int j,i;
+  //  cerr << "in growth, nloc= "<<nloc << endl;
   for (i=0;i<nloc;i++)
     {
       for (j=0;j<PL[i];j++)
@@ -291,6 +288,12 @@ void PackedIndividual_space::Death(int t, AlleleLookTbl &Atbls)
 {
   size_t i, sz;
   sz = Atbls.size();
+  /*
+  cerr<<"In Death PackedIndSpace"<<endl;
+  cerr << cl << ", "<<nloc  <<", loci: ";
+  for (i=0;i<MAXPLOIDY;i++) cerr << G[ ((i * MAXPLOIDY) + 0) ]<< G[ ((i * MAXPLOIDY) + 1) ]<<" " ;
+  cerr << endl;
+  */
   for (i=0;i<sz;i++)
     {
       if (Atbls[i]->getPloidy()==1)
@@ -321,7 +324,7 @@ ostream & operator<<(ostream & stream, PackedIndividual_space &ind)
 	}
       stream << "   " ;
     }
-  stream << endl;
+  //  stream << endl;
   return stream;
 }
 

@@ -48,8 +48,19 @@ InfAlleleTbl::InfAlleleTbl()
   clear();
   setMutationRate(0);
   UNUSED.reserve(500);
-  setClassType(INFALLELETBL);
   maxstate=0;
+  setClassType(INFALLELETBL);
+}
+
+InfAlleleTbl::InfAlleleTbl(const InfAlleleTbl &nt)
+{
+  clear();
+  setMutationRate(nt.rate);
+  setTrans(nt.trans);
+  setClassType(INFALLELETBL);
+  UNUSED.insert(end(UNUSED),begin(nt.UNUSED),end(nt.UNUSED));
+  A.insert(begin(nt.A),end(nt.A));
+  maxstate=nt.maxstate;
 }
 
 InfAlleleTbl::~InfAlleleTbl()
@@ -299,6 +310,7 @@ void InfAlleleTbl::KillAlleleCopy(int i, int t)
 {
   map<int, Allele, less<int> >::iterator tmpiter;
   tmpiter = A.find(i);
+  //  cerr << "A.size() in KillAllele" <<A.size() <<endl;
   if (tmpiter!=A.end())
     {
       if ((*tmpiter).second.GetFreq()>0)
@@ -313,7 +325,7 @@ void InfAlleleTbl::KillAlleleCopy(int i, int t)
     }
   else
     {
-      cerr << "allele index : "<<i<<" not found in Allele.h::KillAlleleCopy"<<endl;
+      cerr << "allele index : "<<i<<" not found in FastAllele::KillAlleleCopy"<<endl;
       cerr << "This is the allele table: " <<endl;
       Write(cerr);
       assert(tmpiter!=A.end());
@@ -350,9 +362,9 @@ int InfAlleleTbl::mutator(int anum, int t)
 {
   map<int, Allele, less<int> >::iterator tmpiter;
 
-
   assert(anum>=0);
-  if (uniform()<rate)    //a mutation has occurred
+  
+  if ((rate>0) && (uniform()<rate))    //a mutation has occurred
     {
       Allele na;
       int newanum;
@@ -420,11 +432,11 @@ void InfAlleleTbl::Write(ostream &stream)
 
 vector<int>  InfAlleleTbl::getAindices()
 {
-  int sz;
+  //  int sz;
   vector<int> aindices;
   map<int, Allele, less<int> >::iterator tmpiter;
 
-  sz=A.size();
+  //  sz=A.size();
 
   for (tmpiter=A.begin();tmpiter!=A.end();tmpiter++)
     {
@@ -438,7 +450,7 @@ void InfAlleleTbl::Scan(istream &stream)
   Allele newa;
   int i;
   int ai;
-  int tmp;
+  //  int tmp;
   int numa;
 
   double tprop;
@@ -453,7 +465,7 @@ void InfAlleleTbl::Scan(istream &stream)
   for (i=0;i<numa;i++)
     {
       stream >> ai >> newa;
-      tmp=addAlleleAndIndex(newa,ai);
+      //      tmp=addAlleleAndIndex(newa,ai);
       tprop = newa.GetProp() + tprop;
       if (newa.GetState()>maxstate)
 	{
@@ -494,6 +506,18 @@ StepAlleleTbl::StepAlleleTbl()
   SetMaxState();
   setClassType(STEPALLELETBL);
 }
+
+StepAlleleTbl::StepAlleleTbl(const StepAlleleTbl &nt)
+{
+  clear();
+  setMutationRate(nt.rate);
+  setTrans(nt.trans);
+  setClassType(STEPALLELETBL);
+  UNUSED.insert(end(UNUSED),begin(nt.UNUSED),end(nt.UNUSED));
+  A.insert(begin(nt.A),end(nt.A));
+  maxstate=nt.maxstate;
+}
+
 StepAlleleTbl::~StepAlleleTbl()
 {
 

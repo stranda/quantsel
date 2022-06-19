@@ -149,8 +149,8 @@ void rmixed_xy(double ix, double iy, double mu1, double mu2, double sd2, double 
   double dir = uniform()* 2 * M_PI;
   double dist ;
   double mt = uniform();
-  double dflag = 1.0;
-  if (dir>M_PI) {dflag=-1.0;}
+  //  double dflag = 1.0;
+  //  if (dir>M_PI) {dflag=-1.0;}
 
   if (mt>=mix) //mix is the prop of ldd
     {

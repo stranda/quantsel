@@ -19,6 +19,14 @@ This file is part of Metasim
 
 using namespace std;
 
+class DemoClass_vector {
+  vector < PackedIndividual_space > I;
+
+public:
+  DemoClass_vector ();
+  ~DemoClass_vector ();
+  
+};
 
 class DemoClass_space {
 
@@ -40,6 +48,7 @@ class DemoClass_space {
     
 public:
   DemoClass_space ();
+  DemoClass_space (const DemoClass_space& dc);
   ~DemoClass_space ();
   
   inline void SetClass(int c)
@@ -224,60 +233,7 @@ inline int GetChangedCurrentInd()
   return (*nextind).second.GetChanged();
 }
 
-inline void SetCurrentLastRep(int lr)
-{
-  if (nextind!=I.end())
-    {
-      (*nextind).second.SetLastRep(lr);
-    }
-  else
-    {
-      cerr << "past end of individual list"<<endl;
-      assert(nextind!=I.end());
-    }
-}  
-///Return the last time click the current individual reproduced
-inline int GetCurrentLastRep()
-{
-  if (nextind!=I.end())
-    {
-      return (*nextind).second.GetLastRep();
-    }
-  else
-    {
-      return -1;
-    }
-}
-  
-inline void SetCurrentNumOff(int no)
-{
-  if (nextind!=I.end())
-    {
-      (*nextind).second.SetNumOff(no);
-    }
-  else
-    {
-      cerr << "past end of individual list"<<endl;
-      assert(nextind!=I.end());
-    }
-}  
-///Return the number of offspring last reproductive event
-inline int GetCurrentNumOff()
-{
-  if (nextind!=I.end())
-    {
-      return (*nextind).second.GetNumOff();
-    }
-  else
-    {
-      return -1;
-    }
-}  
-  
-
 void CompressClass(double frac=0.5);
-
-double GenLength(int t);
 
 vector < PackedIndividual_space > ReturnAsVector ();
 

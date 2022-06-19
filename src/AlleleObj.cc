@@ -34,7 +34,7 @@ void Allele::WriteState(ostream & stream)
 }
 void Allele::Write(ostream & stream)
 {
-  stream  << prop <<" "<< birth <<" "<<state  << endl;
+  stream  << freq<< " "<< prop <<" "<< birth <<" "<<state  << endl;
 }
 
 void Allele::Scan(istream & stream)
@@ -208,8 +208,7 @@ void SeqAllele::WriteState(ostream & stream)
 void SeqAllele::Write(ostream & stream)
 {
   char sob;
-
-  stream << prop <<"  "<< birth <<" ";
+  stream << freq << " " <<prop <<"  "<< birth <<" ";
   for (int i=0; i<SeqLen();++i)
     {
       sob = GetSite(i);
