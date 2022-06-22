@@ -15,6 +15,7 @@ This file is part of Metasim
 #include <execution>
 #include <unistd.h>
 #include <Rmath.h>
+#include <chrono>
 
 
 using namespace std;
@@ -871,6 +872,177 @@ double Landscape_space::getAdjDemoDens(PackedIndividual_space Ind)
 void Landscape_space::Survive()
 {
   PackedIndividual_space ind,tmpind;
+  vector < int > deadindices, changeindices,rsvalues,kseq;
+  vector < survOut > retvec;
+  vector < int >::iterator inditer;
+  size_t i, j, sz;
+
+  //cerr<<"in survive"<<endl;
+  //  cerr << "Atblstart (surv)"<<endl <<Atbls<<endl;
+  deadindices.reserve(1000);
+  changeindices.reserve(1000);
+  rsvalues.reserve(1000);
+  sz = nhab * s;
+  for (i=0;i<sz;i++) if (I[i].size()>0) {kseq.push_back(i);}
+  //  cerr <<"about to transform"<<endl;
+  retvec.resize(kseq.size());
+  /*
+  for (i=0;i<kseq.size();i++)
+    {
+      //      cerr << "i: "<<i<<endl;
+      retvec[i]=Survive_stage(kseq[i]);     
+    }
+  */
+  auto start = std::chrono::high_resolution_clock::now();
+  std::transform(std::execution::par_unseq,
+		 begin(kseq),end(kseq),begin(retvec),
+		 [&,this](auto k){return Landscape_space::Survive_stage(k);}
+		 );
+    auto stop = std::chrono::high_resolution_clock::now();
+  cerr <<"calculating fates in surv cost ";
+  auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop-start);
+  cerr << duration.count() <<" ms and " ;
+  start=stop;
+  //  cerr<<"ran all the survive stages"<<endl;
+  for (i=0;i<kseq.size();i++)
+    {
+      //      cerr <<"kseq[i] "<<kseq[i]<<", deadsize "<<retvec[i].deadindices.size()<<endl;
+      //      cerr<<"first loop"<<endl;
+      for (j=0;j<retvec[i].deadindices.size();j++)
+	//      for (inditer=retvec[kseq[i]].deadindices.begin();inditer!=retvec[kseq[i]].deadindices.end();inditer++)
+	{
+	  //	  	  cerr<<"removing an individual,  j=: "<<j<<endl;
+	  I[kseq[i]].RemoveInd(retvec[i].deadindices[j],t,Atbls);
+	}
+      //      cerr<<"begin second loop, j: "<<j<<endl;
+      for (j=0;j<retvec[i].changeindices.size();j++)
+	{
+	  //	  cerr<<"changing an individual,  j=: "<<j<<endl;
+	  ind = I[kseq[i]].GetIndividual(retvec[i].changeindices[j]);
+	  ind.Change(t);
+	  ind.SetClass(retvec[i].rsvalues[j]);
+	  
+	  //    ind.Growth(Atbls); //comment out because of RemoveIndNoAtbl below
+	  
+	  I[retvec[i].rsvalues[j]].AddIndividual(ind);
+	  I[kseq[i]].RemoveIndNoAtbl(retvec[i].changeindices[j]);
+	}
+      //      cerr<<"end second loop, j: "<<j<<endl;
+    }
+
+  cerr <<" and dealing with results in surv cost ";
+  stop = std::chrono::high_resolution_clock::now();
+  duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop-start);
+  cerr << duration.count() <<" ms of a total of ";
+  start=stop;
+
+  deadindices.clear();
+  changeindices.clear();
+  
+
+}
+
+
+survOut Landscape_space::Survive_stage(const size_t &k)
+{
+  PackedIndividual_space ind,tmpind;
+  vector < int >::iterator inditer;
+  survOut ret;
+  int indx;
+  int rs;
+  size_t i=k;
+  size_t  j, isz;
+
+  //  cerr << "in surv_stage.  k: "<<k<<endl;
+  
+  //cerr<<"in survive"<<endl;
+  //  cerr << "Atblstart (surv)"<<endl <<Atbls<<endl;
+  ret.deadindices.reserve(1000);
+  ret.changeindices.reserve(1000);
+  ret.rsvalues.reserve(1000);
+
+      //     S[e].SetFromState(i); //choose a column in the survival/migration matrix
+      I[i].ResetIndividuals();
+      isz = I[i].size();
+      double kAdj = (kvec[e][i/s]-static_cast<double>(isz))/kvec[e][i/s];//strength of density dependence on class
+
+      if (kAdj<0) {kAdj=0;}
+      //      cerr <<"bout to start loop in surv_stage, isz: "<<isz<<endl;
+      for (j=0;j<isz;j++)
+	{
+	  //	  cerr <<"j: "<<j<<endl;
+	  ind = I[i].GetCurrentIndividual();
+	  indx = I[i].GetCurrentIndex();
+	  if ((indx<0)||(ind.GetClass()<0))
+	    {
+	      cerr << " run off the the end of the individual map for class " << i<<endl;
+	      assert(ind.GetClass()>=0);
+	    }
+	  if (ind.GetChanged()<t)
+	    {
+	      //cerr << "kAdj "<<kAdj <<" kvec[e][i/s] "<<kvec[e][i/s] << " iszd "<<isz<<", i: "<<i<<", j: "<<j<<endl;
+	      //      cerr << "about to run getAdjDemo in Survive" << endl;
+	      double Sadj=getAdjDemo(5,ind); //Survival fitness adjustment
+	      double indKadj=kAdj+getAdjDemoDens(ind); //strength of dens dependence on this ind
+
+	      if (indKadj>1) {indKadj = 1;}
+	      if (indKadj<0) {indKadj = 0;}
+	      double finalAdj = Sadj*indKadj;	      
+	    
+	      //	      cerr << "indKadj " << indKadj << " kAdj "<<kAdj<<" Sadj "<<Sadj<<endl;
+	      
+	      //	      S[e].SetRandomToStateVec(Sadj*indKadj);
+	      //cerr<<"adjustment sent to S "<<Sadj*indKadj<<endl;
+	      rs = S[e].RandomState(finalAdj, i);
+
+	      //rs = S[e].RandomStateLocal(finalAdj, i,nhab);
+	      //	      	      cerr <<"rs = "<<rs<<", and i = " << i << endl;
+	      //cerr << "ran RandomState, rs: "<<rs<<", and i = " << i <<", S[e].size: "<<S[e].Size()<<endl;
+	      
+	      if (rs<0)//ind dies
+		{
+		  //		  cerr << "died"<<endl;
+		  ret.deadindices.push_back(indx);
+		}
+	      else if (rs!=int(i))
+		{
+		  //		  cerr << "changed cats"<<endl;
+		  ret.changeindices.push_back(indx);
+		  ret.rsvalues.push_back(rs);
+		}
+	      else
+		{
+		  //		  cerr<<"stayed in same cat"<<endl;
+		  I[i].ChangeInd(indx,t);
+		}
+	    }
+	  else
+	    {
+	    }
+	  if (I[i].NextIndividual()) //advance the individual pointer
+	    {
+	      break;
+	    }
+	}
+      
+      
+      //  cerr<< "leaving survive_stage, here are the class sizes:"<<endl;
+      //  sz=I[i].size();cerr <<"I[i].size()  "<< sz <<", ";
+      //  sz=ret.deadindices.size();cerr<<"dead.size() " << sz <<", ";
+      //  sz=ret.changeindices.size();cerr <<"change.size() "<< sz <<", ";
+      //  sz=ret.rsvalues.size();cerr <<"rsvals.size() "<< sz <<", ";
+      //  cerr<<endl;
+
+  return ret;
+}
+
+
+
+/**
+
+void Landscape_space::Survive()
+{
+  PackedIndividual_space ind,tmpind;
   vector < int > deadindices, changeindices;
   vector < int >::iterator inditer;
   int indx;
@@ -906,15 +1078,17 @@ void Landscape_space::Survive()
 	      //      cerr << "about to run getAdjDemo in Survive" << endl;
 	      double Sadj=getAdjDemo(5,ind); //Survival fitness adjustment
 	      double indKadj=kAdj+getAdjDemoDens(ind); //strength of dens dependence on this ind
-	      
+
 	      if (indKadj>1) {indKadj = 1;}
 	      if (indKadj<0) {indKadj = 0;}
-
+	      
+	      double finalAdj = Sadj*indKadj;
 	      //	      cerr << "indKadj " << indKadj << " kAdj "<<kAdj<<" Sadj "<<Sadj<<endl;
 	      
 	      //	      S[e].SetRandomToStateVec(Sadj*indKadj);
 	      //cerr<<"adjustment sent to S "<<Sadj*indKadj<<endl;
 	      rs = S[e].RandomState(Sadj*indKadj, i);
+	      //rs = S[e].RandomStateLocal(finalAdj, i,nhab);
 	      //	      	      cerr <<"rs = "<<rs<<", and i = " << i << endl;
 	      //cerr << "ran RandomState, rs: "<<rs<<", and i = " << i <<", S[e].size: "<<S[e].Size()<<endl;
 	      
@@ -965,6 +1139,9 @@ void Landscape_space::Survive()
   //for (i=0;i<I.size();i++) {sz=I[i].size();cerr << sz <<", ";}
   //cerr<<endl;
 }
+
+ **/
+
 
 /** 
 
@@ -1379,21 +1556,27 @@ void Landscape_space::Reproduce()
     }
   //  cerr<<"loop over"<<endl;
   **/
+  auto start = std::chrono::high_resolution_clock::now();
    
-  std::transform(std::execution::par,
+  std::transform(std::execution::par_unseq,
 		 begin(kseq),end(kseq),begin(off),
 		 [&,this](auto k){return Landscape_space::Reproduce_stage(k,locinfo);}
 		 );
   //std::transform(kseq.begin(),kseq.end(),off.begin(),[*this](size_t k){Landscape_space::Reproduce_stage(k);});
 
   //  cerr << "ran transform" << endl;
-  
+
+  auto stop = std::chrono::high_resolution_clock::now();
+  cerr <<"reproduction cost ";
+  auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop-start);
+  cerr << duration.count() <<" ms and  " ;
+  start=stop;
   
   for (i=0;i<sz;i++)
     for (size_t j=0;j<off[i].size();j++)
       {
 	ind = off[i][j];
-
+	
 	ind.Birth(t,Atbls);  //this can modify the Atbl, hard to parallelize
 	
 	if ((ind.GetClass()<0)||(I[ind.GetClass()].AddIndividual(ind)<0))
@@ -1403,6 +1586,11 @@ void Landscape_space::Reproduce()
 	//cerr<<"added individual : "<<j<<endl;
       }
 
+  stop = std::chrono::high_resolution_clock::now();
+  cerr <<"adding inds (including genetics) cost ";
+  duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop-start);
+  cerr << duration.count() <<" ms of a total of " ;
+  
   //  cerr << "Atbl" <<Atbls<<endl;
   //  cerr << "finished reproduce" <<endl;
   
@@ -1506,7 +1694,9 @@ appropriate column of the M[e] matrix.
 		  ///pick a number of offspring from a 
 		  ///Poisson dist with mean=R[tostate,fromstate]
 
-		  if ((males.size()==0)|(Rval<=0.0))
+		  //		  if ((males.size()==0)||(Rval<=0.0))
+		  //if ((Rval<=0.0)||(males.size()==0))
+		  if (Rval<=0.0)
 		    {
 		      noff=0;
 		    }
@@ -1628,7 +1818,6 @@ function we have disallowed multiple paternity anyway.  This comment just memori
 			} //q
 		     }//end if noff>0
 		} //j
-	
 	      I[k].NextIndividual();
 	    }  //l
         } //if R[e].AnyFrom

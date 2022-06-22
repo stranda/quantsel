@@ -95,7 +95,7 @@ l <- landscape.carry(landscape.new.individuals(rland,c(inits)))
 pdf("landscape.pdf",width=20,height=20)
 landscape.plot.locations(l,label=T)
 
-rasterlayers=c(1:33) #low numbers are early, 1:33 simulates 990 years
+rasterlayers=c(1) #low numbers are early, 1:33 simulates 990 years
 genperlayer=30
 
 for (i in rasterlayers)

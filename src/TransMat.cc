@@ -92,59 +92,6 @@ void TransMat::SetMat(TransMat a)
 }
 
 
-/*
-TransMat & TransMat::operator= (TransMat &T)
-{
-  int i, j;
-  int s = T.Size();
-  for (i=0; i<s; i++)
-    for (j=0; j<s; j++)
-      {
-	this->SetElement(i,j,T.GetElement(i,j));
-      }
-  return *this;
-}
-*/
-
-/**
-///Implementation of the random state algorithm
- ///adj is a multiplier to the entire vector.  Can be used to decrease or increase survival overall
-void TransMat::SetRandomToStateVec (double adj)
-{
-  size_t sz = Size();
-  double *p = new double[sz + 1];
-
-  size_t i;
-
-  for (i=0;i<sz;i++)
-    {
-      SetToState(i);
-      p[i]=Value()*adj;
-      assert(p[i]>=0);
-    }
- 
-  bObj.SetDiscreteLookup(p,sz+1);
-  delete [] p;
-}
-
-///Implementation of the random state algorithm
-void TransMat::SetRandomFromStateVec ()
-{
-  size_t sz = Size();
-  double *p = new double[sz + 1];
-
-  size_t i;
-
-  for (i=0;i<sz;i++)
-    {
-      SetFromState(i);
-      p[i]=Value();
-      assert(p[i]>=0);
-    }
-  RandLibObj.SetDiscreteLookup(p,sz+1);
-  delete [] p;
-}
-**/
 int TransMat::RandomState(double adj, int frm)
 {
   
@@ -154,28 +101,91 @@ int TransMat::RandomState(double adj, int frm)
   size_t i=0;
   for (i=0; i<(p.size()-1); i++)
     {
+      //    p.push_back(tm[i][frm]);
       p[i] = GetElement(frm,i) * adj;
-      s = s+p[i];
+      //      s = s+tm[i][frm];
+      s = s+p[i];;
     }
-
-  if (s<1.0) {p[p.size()-1]=1.0 - s;}
+  if (s<1.0) {p[p.size()-1]=1.0 - s;} else {p[p.size()-1]=0.0;}
   int rs = PickMultinomial(p);
   //  cerr << "p.back() "<<p.back()<<", p.size() "<<p.size()<<", i: "<<i<<", rs "<<rs<<endl;
   if (rs == int(p.size()-1)) {rs=-1;}
-
   return rs;
 }
 
+/*
+This function assumes that the local, habitat-specific demography is the only demography that
+matters.  It completely ignores "off-diagonal" elements. In other words, the output state is forced
+to be within the same habitat as 'frm', or -1 which signifies "dead". 
+This should only be called for survive-type applications
+
+h is the number of habitats, need that to figure out in which habitat 'frm' is located
+ */
+
+int TransMat::RandomStateLocal(const double &adj, const int &frm, const size_t &h)
+{
+  //frm is the column of the transition matrix
+  //adj is a factor that might be unique for an individual
+  //  cerr << "in randomstatelocal "<<endl;
+  vector < double > p(Size()+1,0);
+  int stg = Size()/h;  //number of stages per habitat
+  size_t strt=frm - (frm%stg);
+  double s=0.0;
+  size_t i=0;
+    cerr << "strt "<<strt<<", frm "<<frm<<", h "<<h<<", stg"<<stg<<endl;
+  for (i=strt; i<(strt+stg); i++)
+    {
+      p[i]=tm[i][frm];
+      s = s+tm[i][frm];
+    }
+  if (s<1.0) {p[Size()-1]=(1.0 - s);} else {}
+  int rs = PickMultinomial(p);
+  if (rs == int(p.size()-1)) {rs=-1;} else {}
+  return rs;
+}
+/******************  OLD VERSION
+int TransMat::RandomStateLocal(const double &adj, const int &frm, const size_t &h)
+{
+  //frm is the column of the transition matrix
+  //adj is a factor that might be unique for an individual
+  //  cerr << "in randomstatelocal "<<endl;
+  vector < double > p;
+  int stg = Size()/h;  //number of stages per habitat
+  size_t strt=frm - (frm%stg);
+  double s=0.0;
+  size_t i=0;
+
+    cerr << "strt "<<strt<<", frm "<<frm<<", h "<<h<<", stg"<<stg<<endl;
+  
+  for (i=strt; i<(strt+stg); i++)
+    {
+      //      cerr << "i: "<<i<<endl;
+      p.push_back(tm[i][frm]);
+      //p[i] = GetElement(frm,i) * adj;
+      s = s+tm[i][frm];
+    }
+  //  cerr << "s: "<<s<<endl;
+  //  for (i=0;i<p.size();i++) {cerr << p[i]<<", " ;} cerr <<endl;
+  if (s<1.0) {p.push_back(1.0 - s);} else {p.push_back(0.0);}
+  //  for (i=0;i<p.size();i++) {cerr << p[i]<<", " ;} cerr <<endl;
+  int rs = PickMultinomial(p);
+  //  cerr << "p.back() "<<p.back()<<", p.size() "<<p.size()<<", i: "<<i<<", rs "<<rs<<endl;
+  if (rs == int(p.size()-1)) {rs=-1;} else {rs = rs + strt;}
+  //  cerr<<"about to return from randomstatelocal"<<endl;
+  return rs;
+}
+****/
 
 int TransMat::AnyFrom(size_t fs)
 {
-  size_t i;
+  size_t i=0;
   double tot = 0.0;
   SetFromState(fs);
-  for (i=0;i<size;i++)
+  while ((tot==0)&&(i<size))
     {
       SetToState(i);
       tot = tot + Value();
+      i++;
     }
   return (tot>0);
 }

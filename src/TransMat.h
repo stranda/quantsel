@@ -127,7 +127,15 @@ void SetRandomFromStateVec();
  */
   int RandomState(double adj, int frm);
 
+  /** 
+      
+      This method treats the from column of the matrix as a
+      multinomial prob dist and chooses the appropriate to value from
+      the distribution.  restricts the state output to the habitat frm is located in. 
+      'h' is the number of habitats
 
+ */
+  int RandomStateLocal(const double &adj, const int &frm, const size_t &h);
 
   /**
 

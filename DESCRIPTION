@@ -1,7 +1,7 @@
 Package: quantsel
 Type: Package
 Title: Spatially explicit population genetic simulations with polygenic traits and selection
-Version: 0.14.1
+Version: 0.15.0
 Date: 2020-04-09
 Author: Allan Strand
 Maintainer: <stranda@cofc.edu>

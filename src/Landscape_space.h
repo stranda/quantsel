@@ -33,6 +33,16 @@ using namespace std;
 
 
 
+//struct to hold data from single survive_stage runs
+struct survOut
+{
+  std::vector <int> deadindices;
+  std::vector <int> changeindices;
+  std::vector <int> rsvalues;
+};
+
+
+
 
 ///Local Matrix information Class
 /**
@@ -751,7 +761,8 @@ int PopSize(int p=-1);
 
 
 void Survive();
-
+  
+survOut Survive_stage(const size_t &k);
 
 /*
 this function is supposed to take a vector of individuals and return a unique

@@ -10,6 +10,7 @@ Allan Strand 9/17/01
 #include <fstream>
 #include <kernelPop.h>
 #include <vector>
+#include <chrono>
 
 //extern "C" {
 
@@ -1207,7 +1208,7 @@ SEXP convert_metasim_to_R(Landscape_space_statistics &L)
   Landscape_space_statistics L;
   int n,i=0;
   int compress;
-
+  using namespace std::chrono;
   convert_R_to_metasim(Rland,L);
 
   //   Rprintf("in iterate_landscape, did initial conversion\n");
@@ -1223,16 +1224,50 @@ SEXP convert_metasim_to_R(Landscape_space_statistics &L)
     {
       if ((L.getgens()>L.getCgen())&&(L.PopSize()!=0))
 	{
-  	  L.Extirpate();
-	  //	  	  Rprintf("ran Extirpate\n");
+	  cerr << "i: "<<i<<endl;
+	  Rprintf("about to run Extirpate\n");
+	  auto start = high_resolution_clock::now();
+	  
+	  L.Extirpate();
+
+	  auto stop = high_resolution_clock::now();
+	  Rprintf("ran Extirpate ");
+	  auto duration = duration_cast<milliseconds>(stop-start);
+	  cerr << duration.count() <<" ms" <<endl;
+	  start=stop;
+
+	  
 	  L.Survive();
-	  //	            Rprintf("ran survive\n");
-  	  L.LandCarry();
-	  //	  	  Rprintf("ran landcarry\n");
-  	  L.HabCarry();
-	  //	   	  Rprintf("ran habcarry\n");
+
+          //Rprintf("ran survive ");
+	  stop = high_resolution_clock::now();
+	  duration = duration_cast<milliseconds>(stop-start);
+	  cerr << duration.count() <<" ms" <<endl;
+	  start=stop;
+	  
+	  L.LandCarry();
+	  /****
+	  Rprintf("ran landcarry ");
+	  stop = high_resolution_clock::now();
+	  duration = duration_cast<milliseconds>(stop-start);
+	  cerr << duration.count() <<" ms" <<endl;
+	  start=stop;
+	  *****/
+	  L.HabCarry();
+
+	  Rprintf("ran habcarry ");
+	  stop = high_resolution_clock::now();
+	  duration = duration_cast<milliseconds>(stop-start);
+	  cerr << duration.count() <<" ms" <<endl;
+	  start=stop;
+
 	  L.Reproduce();
-	  //	   	  Rprintf("ran reproduce\n");
+
+	  //	  Rprintf("ran reproduce ");
+	  stop = high_resolution_clock::now();
+	  duration = duration_cast<milliseconds>(stop-start);
+	  cerr << duration.count() <<" ms" <<endl;
+
 	  L.Advance();
 	}
     }
@@ -1270,13 +1305,17 @@ SEXP convert_metasim_to_R(Landscape_space_statistics &L)
       {
 	if ((L.getgens()>L.getCgen())&&(L.PopSize()!=0))
 	  {
+	    Rprintf("About to run Extirpate");
 	    L.Extirpate();
+	    	    Rprintf("About to run Survive");
 	    L.Survive();
+	    	    	    Rprintf("About to run Carry");
 	    //	    L.HabCarry();
 	    L.HabCarry_stg0();
 	    L.LandCarry();
-
+	    	    Rprintf("About to run Reproduce");
 	    L.Reproduce();
+	    	    	    Rprintf("About to run Advance");
 	    L.Advance();
 	  }
       }

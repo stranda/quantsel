@@ -1,4 +1,5 @@
-6/10/22 v0.14.1 Eliminated randlib object.  randomization now uses non-obect functions.  needed for independence among potential threads
+	6/22/22 v0.15.0 Parallelized the demographic portions of survival and reproduction through std::execution::par
+	6/10/22 v0.14.1 Eliminated randlib object.  randomization now uses non-obect functions.  needed for independence among potential threads
 5/31/22 v0.13 Should work for no phenotypes also (just marker genetics).  Added some functions to extract data from rasters to determine the suitability surface
 
 4/9/20	Changed package so significantly that it is now quantsel v.0.12.0 instead of kernelpop

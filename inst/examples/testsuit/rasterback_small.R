@@ -30,7 +30,7 @@ rland <- landscape.new.floatparam(rland,s=0,
 
 S <- matrix(c(
     0.07   ,   0,
-    0.03,   0.85
+    0.05,   0.9
 ), byrow=T, nrow = 2)
 
 R <- matrix(c(
@@ -47,11 +47,10 @@ rland <- landscape.new.local.demo(rland,S,R,M)
 
 S <- matrix(0,ncol = (rland$intparam$habitats*rland$intparam$stages),
             nrow = (rland$intparam$habitats*rland$intparam$stages))
-
 R <- S
 M <- S
 
-carry=600
+carry=1000
 
 k=rep(carry,rland$intparam$habitat) #need some sort of carrying capacity to initalize.  replaced in first gen
 
@@ -68,12 +67,13 @@ rland <- landscape.new.epoch(rland,S=S,R=R,M=M,
                              topy=locs[,4],
                              maxland=c(min(locs[,2]),min(locs[,5]),max(locs[,3]),max(locs[,4])))
 
-nl = 10
+nl = 1000
 for (i in 1:nl)
-    rland <- landscape.new.locus(rland,type=1,ploidy=2,mutationrate=0.00,transmission=0,numalleles=2)
+    rland <- landscape.new.locus(rland,type=1,ploidy=2,mutationrate=0.000001,
+                                 transmission=0,numalleles=2)
 
 #rland <- landscape.nophen(rland)
-initpopsize <- 1000
+initpopsize <- 600 #was 600
 inits <- matrix(0,ncol=rland$intparam$habitats,nrow=2)
 refuge="ALL"
 
@@ -91,22 +91,35 @@ refuge="ALL"
 inits[1,pops] <- initpopsize
 inits[2,pops] <- initpopsize
 
-l <- landscape.carry(landscape.new.individuals(rland,c(inits)))
+l <- landscape.new.individuals(rland,c(inits))
+print(table(landscape.populations(l)))
+#pdf("landscape_small.pdf",width=20,height=20)
+#landscape.plot.locations(l,label=T)
 
-pdf("landscape_small.pdf",width=20,height=20)
-landscape.plot.locations(l,label=T)
-
-rasterlayers=c(1:10) #low numbers are early, 1:33 simulates 990 years
+rasterlayers=c(1:30) #low numbers are early, 1:33 simulates 990 years
 genperlayer=30
+
+system.time({
 
 for (i in rasterlayers)
 {
+    print(dim(l$individuals))
+#    print(l$demography$epochs[[1]]$Carry)
     ##change the carrying capacitites every change in rasterlayer
     l$demography$epochs[[1]]$Carry = calc.k.vec(carry, hsl,i)
-    print(dim(l$individuals))
+#    print(dim(l$individuals))
     l=landscape.simulate(l,genperlayer)
-    saveRDS(file="landscape-latest.RDS", l)
-    landscape.plot.locations(l,label=T)
+print(i)
+saveRDS(file="landscape-latest.RDS", l)
+#    landscape.plot.locations(l,label=T)
 }
 
+
+print(dim(l$individuals))
+
+}) #end system.time()
+
+print (l$intparam$currentgen)
+pdf("landscape_small.pdf",width=20,height=20)
+    landscape.plot.locations(l,label=T)
 dev.off()

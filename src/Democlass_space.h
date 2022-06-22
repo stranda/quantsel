@@ -132,6 +132,32 @@ void ClearClass (int t, AlleleLookTbl &Atbls);
   ///Removes the individual indicated by 'ind' from the structure.  returns 0 if ind was not found, else 1
 inline int RemoveInd (int ind, int t, AlleleLookTbl &Atbls)
 {
+  //  cerr << "in removeInd"<<endl;
+  int er;
+  map<int,PackedIndividual_space,less <int> >::iterator iiter;
+  er = 0;
+  iiter = I.find(ind);
+
+  if (iiter!=I.end())
+    {
+      if (ind==maxind)
+	{
+	  maxind--;
+	}
+      else
+	{
+	  UNUSED.push_back(ind);
+	}
+      (*iiter).second.Death(t,Atbls);
+      I.erase(iiter);
+      er = 1;
+    }
+  return er;
+}
+
+  ///Removes the individual indicated by 'ind' from the structure.  returns 0 if ind was not found, else 1
+inline int RemoveIndNoAtbl (int ind)
+{
   int er;
   map<int,PackedIndividual_space,less <int> >::iterator iiter;
   er = 0;
@@ -146,7 +172,6 @@ inline int RemoveInd (int ind, int t, AlleleLookTbl &Atbls)
 	{
 	  UNUSED.push_back(ind);
 	}
-      (*iiter).second.Death(t,Atbls);
       I.erase(iiter);
       er = 1;
     }

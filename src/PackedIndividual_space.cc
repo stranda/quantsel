@@ -288,12 +288,6 @@ void PackedIndividual_space::Death(int t, AlleleLookTbl &Atbls)
 {
   size_t i, sz;
   sz = Atbls.size();
-  /*
-  cerr<<"In Death PackedIndSpace"<<endl;
-  cerr << cl << ", "<<nloc  <<", loci: ";
-  for (i=0;i<MAXPLOIDY;i++) cerr << G[ ((i * MAXPLOIDY) + 0) ]<< G[ ((i * MAXPLOIDY) + 1) ]<<" " ;
-  cerr << endl;
-  */
   for (i=0;i<sz;i++)
     {
       if (Atbls[i]->getPloidy()==1)
