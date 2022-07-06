@@ -69,8 +69,8 @@ rland <- landscape.new.epoch(rland,S=S,R=R,M=M,
 
 nl = 1000
 for (i in 1:nl)
-    rland <- landscape.new.locus(rland,type=1,ploidy=2,mutationrate=0.000001,
-                                 transmission=0,numalleles=2)
+    rland <- landscape.new.locus(rland,type=2,ploidy=2,mutationrate=0.000001,
+                                 transmission=0,numalleles=2,allelesize=100)
 
 #rland <- landscape.nophen(rland)
 initpopsize <- 600 #was 600

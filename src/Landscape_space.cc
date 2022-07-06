@@ -16,6 +16,7 @@ This file is part of Metasim
 #include <unistd.h>
 #include <Rmath.h>
 #include <chrono>
+#include <mutex>
 
 
 using namespace std;
@@ -872,11 +873,13 @@ double Landscape_space::getAdjDemoDens(PackedIndividual_space Ind)
 void Landscape_space::Survive()
 {
   PackedIndividual_space ind,tmpind;
-  vector < int > deadindices, changeindices,rsvalues,kseq;
+  vector < int > deadindices, changeindices,rsvalues,kseq,iv;
   vector < survOut > retvec;
   vector < int >::iterator inditer;
-  size_t i, j, sz;
+  std::mutex shared_lock;
 
+  size_t i, j, sz;
+  
   //cerr<<"in survive"<<endl;
   //  cerr << "Atblstart (surv)"<<endl <<Atbls<<endl;
   deadindices.reserve(1000);
@@ -904,31 +907,26 @@ void Landscape_space::Survive()
   cerr << duration.count() <<" ms and " ;
   start=stop;
   //  cerr<<"ran all the survive stages"<<endl;
-  for (i=0;i<kseq.size();i++)
-    {
-      //      cerr <<"kseq[i] "<<kseq[i]<<", deadsize "<<retvec[i].deadindices.size()<<endl;
-      //      cerr<<"first loop"<<endl;
-      for (j=0;j<retvec[i].deadindices.size();j++)
-	//      for (inditer=retvec[kseq[i]].deadindices.begin();inditer!=retvec[kseq[i]].deadindices.end();inditer++)
-	{
-	  //	  	  cerr<<"removing an individual,  j=: "<<j<<endl;
-	  I[kseq[i]].RemoveInd(retvec[i].deadindices[j],t,Atbls);
-	}
-      //      cerr<<"begin second loop, j: "<<j<<endl;
-      for (j=0;j<retvec[i].changeindices.size();j++)
-	{
-	  //	  cerr<<"changing an individual,  j=: "<<j<<endl;
-	  ind = I[kseq[i]].GetIndividual(retvec[i].changeindices[j]);
-	  ind.Change(t);
-	  ind.SetClass(retvec[i].rsvalues[j]);
-	  
-	  //    ind.Growth(Atbls); //comment out because of RemoveIndNoAtbl below
-	  
-	  I[retvec[i].rsvalues[j]].AddIndividual(ind);
-	  I[kseq[i]].RemoveIndNoAtbl(retvec[i].changeindices[j]);
-	}
-      //      cerr<<"end second loop, j: "<<j<<endl;
-    }
+  for (i=0;i<kseq.size();i++) iv.push_back(i);
+  
+  std::for_each(std::execution::seq,
+		iv.begin(),iv.end(),
+		[&](const int &i)
+		{
+		  for (j=0;j<retvec[i].deadindices.size();j++)
+		    {
+		      I[kseq[i]].RemoveInd(retvec[i].deadindices[j],t,Atbls);
+		    }
+		  for (j=0;j<retvec[i].changeindices.size();j++)
+		    {
+		      ind = I[kseq[i]].GetIndividual(retvec[i].changeindices[j]);
+		      ind.Change(t);
+		      ind.SetClass(retvec[i].rsvalues[j]);
+		      I[retvec[i].rsvalues[j]].AddIndividual(ind);
+		      I[kseq[i]].RemoveIndNoAtbl(retvec[i].changeindices[j]);
+		    }
+		  //      cerr<<"end second loop, j: "<<j<<endl;
+		});
 
   cerr <<" and dealing with results in surv cost ";
   stop = std::chrono::high_resolution_clock::now();
@@ -1037,110 +1035,6 @@ survOut Landscape_space::Survive_stage(const size_t &k)
 }
 
 
-
-/**
-
-void Landscape_space::Survive()
-{
-  PackedIndividual_space ind,tmpind;
-  vector < int > deadindices, changeindices;
-  vector < int >::iterator inditer;
-  int indx;
-  int rs;
-  size_t i, j, isz, sz;
-
-  //cerr<<"in survive"<<endl;
-  //  cerr << "Atblstart (surv)"<<endl <<Atbls<<endl;
-  deadindices.reserve(1000);
-  changeindices.reserve(1000);
-  sz = nhab * s;
-  for (i=0;i<sz;i++)
-    {
-      //     S[e].SetFromState(i); //choose a column in the survival/migration matrix
-      I[i].ResetIndividuals();
-      isz = I[i].size();
-      double kAdj = (kvec[e][i/s]-static_cast<double>(isz))/kvec[e][i/s];//strength of density dependence on class
-
-      if (kAdj<0) {kAdj=0;}
-
-      for (j=0;j<isz;j++)
-	{
-	  ind = I[i].GetCurrentIndividual();
-	  indx = I[i].GetCurrentIndex();
-	  if ((indx<0)||(ind.GetClass()<0))
-	    {
-	      cerr << " run off the the end of the individual map for class " << i<<endl;
-	      assert(ind.GetClass()>=0);
-	    }
-	  if (ind.GetChanged()<t)
-	    {
-	      //cerr << "kAdj "<<kAdj <<" kvec[e][i/s] "<<kvec[e][i/s] << " iszd "<<isz<<", i: "<<i<<", j: "<<j<<endl;
-	      //      cerr << "about to run getAdjDemo in Survive" << endl;
-	      double Sadj=getAdjDemo(5,ind); //Survival fitness adjustment
-	      double indKadj=kAdj+getAdjDemoDens(ind); //strength of dens dependence on this ind
-
-	      if (indKadj>1) {indKadj = 1;}
-	      if (indKadj<0) {indKadj = 0;}
-	      
-	      double finalAdj = Sadj*indKadj;
-	      //	      cerr << "indKadj " << indKadj << " kAdj "<<kAdj<<" Sadj "<<Sadj<<endl;
-	      
-	      //	      S[e].SetRandomToStateVec(Sadj*indKadj);
-	      //cerr<<"adjustment sent to S "<<Sadj*indKadj<<endl;
-	      rs = S[e].RandomState(Sadj*indKadj, i);
-	      //rs = S[e].RandomStateLocal(finalAdj, i,nhab);
-	      //	      	      cerr <<"rs = "<<rs<<", and i = " << i << endl;
-	      //cerr << "ran RandomState, rs: "<<rs<<", and i = " << i <<", S[e].size: "<<S[e].Size()<<endl;
-	      
-	      if (rs<0)//ind dies
-		{
-		  //		  cerr << "died"<<endl;
-		  deadindices.push_back(indx);
-		}
-	      else if (rs!=int(i))
-		{
-		  //		  cerr << "changed cats"<<endl;
-		  ind.Change(t);
-		  ind.SetClass(rs);
-		  ind.Growth(Atbls);
-		  I[rs].AddIndividual(ind);
-		  changeindices.push_back(indx);
-		}
-	      else
-		{
-		  //		  cerr<<"stayed in same cat"<<endl;
-		  I[i].ChangeInd(indx,t);
-		}
-	    }
-	  else
-	    {
-	    }
-	  if (I[i].NextIndividual()) //advance the individual pointer
-	    {
-	      break;
-	    }
-	}
-
-      for (inditer=deadindices.begin();inditer!=deadindices.end();inditer++)
-	{
-	  //	  cerr<<"removing an individual:"<<endl;
-	  I[i].RemoveInd(*inditer,t,Atbls);
-	}
-      for (inditer=changeindices.begin();inditer!=changeindices.end();inditer++)
-	{
-	  I[i].RemoveInd(*inditer,t,Atbls);
-	}
-
-      deadindices.clear();
-      changeindices.clear();
-      
-    }
-  //cerr<< "leaving survive, here are the class sizes:"<<endl;
-  //for (i=0;i<I.size();i++) {sz=I[i].size();cerr << sz <<", ";}
-  //cerr<<endl;
-}
-
- **/
 
 
 /** 
@@ -1518,44 +1412,19 @@ void Landscape_space::Reproduce()
   PackedIndividual_space ind;
   size_t  i, sz;
   sz = nhab * s;
-  //  int rows=getrows();
-  //  int cols=getcols();
-  //  cerr << "inside Reproduce()" <<endl;
-  //  cerr << "Atblstart "<<endl <<Atbls<<endl;
   vector<vector<int>> locinfo=GetLocInfo();
   vector < vector <PackedIndividual_space> > off;
-  //  for (i=0;i<Atbls.size();i++) sz = Atbls[i]->getPloidy();
-  //  cerr << "about to resize off"<<endl;
   off.resize(sz);
   
   vector < PackedIndividual_space > o;
-  //  o.AddIndividual(ind);
-  //  cerr << off[0].size() << ", "<<o.size()<<endl;
-  //  PackedIndividual_space  ci = off[sz-1].GetCurrentIndividual();
-  //  cerr << "off sz-1 current: " << ci.GetClass() <<endl ;
-  
   vector < size_t > kseq;
 
   for (i=0;i<sz;i++)
     {
       off[i].resize(0);
       if (R[e].AnyFrom(i)) kseq.push_back(i);
-      //      Reproduce_stage(i,sz);    
     }//i
 
-  //  cerr <<"about to run transform" <<endl;
-  //  cerr <<"length of kseq: "<<kseq.size()<<endl;
-  //  cerr <<"length of off: "<<off.size()<<endl;
-
-  /**
-  for (i=0;i<sz;i++)
-    {
-      o=Reproduce_stage(i,locinfo);
-      off[i].insert(off[i].end(),o.begin(),o.end());
-      //      cerr << i << ", ";
-    }
-  //  cerr<<"loop over"<<endl;
-  **/
   auto start = std::chrono::high_resolution_clock::now();
    
   std::transform(std::execution::par_unseq,
@@ -1571,6 +1440,7 @@ void Landscape_space::Reproduce()
   auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop-start);
   cerr << duration.count() <<" ms and  " ;
   start=stop;
+
   
   for (i=0;i<sz;i++)
     for (size_t j=0;j<off[i].size();j++)

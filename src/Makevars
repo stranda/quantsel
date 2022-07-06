@@ -4,7 +4,14 @@ PKG_CXXFLAGS = -I.  -std=c++17 -O3 -pedantic -Wall
 #PKG_CXXFLAGS = -I.  -std=c++17  -pedantic -Wall -pg
 #PKG_CFLAGS =   -I. 
 #PKG_CXXFLAGS = -I. 
+CXX=nvc++
+CXX1X=nvc++
+CXX11=nvc++
+CXX14=nvc++
+CXX17=nvc++
+
 
 PARLIB="-ltbb"
 
 PKG_LIBS =  ${FLIBS} ${LAPACK_LIBS} ${BLAS_LIBS} ${LIBM} ${PARLIB} 
+
